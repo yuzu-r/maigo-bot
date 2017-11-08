@@ -50,7 +50,9 @@ end
 
 bot.command(:help, description: 'maigo-helper help') do |event|
   event << 'Type ***?whereis*** and a gym name or nickname to look up its location.'
-  event << 'Try ***?whereis sand pit*** to see it in action.'
+  event << 'Try ***?whereis happy donuts*** to see it in action.'
+  event << 'It is not case sensitive. In most cases, it can guess an incomplete name, not typo-ed names.'
+  event << 'In other words, ***?whereis donut*** will work, but ***?whereis hapy donts*** will not.'
   event << 'If the entered name isn\'t unique, maigo-helper will return a list of suggestions to narrow down your search.'
 end
 
