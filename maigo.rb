@@ -67,9 +67,9 @@ end
 
 bot.command(:report, min_args: 2, description: 'report a raid') do |event, gym, boss, *time|
 	# should be its own bot, but heroku free hours limit...
-	gym_list = ['long', 'vets', 'frog', 'sprint']
+	gym_list = ['long', 'vets', 'frog', 'sprint', 'free']
 	if !gym_list.include?(gym)
-		bot.send_message(event.channel.id, 'Gym not recognized (must be long, vets, frog, or sprint)')
+		bot.send_message(event.channel.id, 'Gym not recognized (must be long, vets, frog, free, or sprint)')
 	else
 		bot_response = raid_report(gym, boss, time)
 		if bot_response

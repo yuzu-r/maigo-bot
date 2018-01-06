@@ -34,6 +34,7 @@ end
 
 def raid_report(gym, boss, time)
 	return false if !gym || !boss
+	puts "connecting to mongo"
 	client = Mongo::Client.new(ENV['MONGO_URI'])
 	db = client.database
 	raids = client[:raids]
@@ -41,15 +42,19 @@ def raid_report(gym, boss, time)
 	gym_aliases = {'long' => 'Long Song Sculpture', 
 							'vets' => 'Veterans Memorial Hall (Albany)', 
 							'frog' => 'Frog Habitat',
-							'sprint' => 'Sprint Store'}
+							'sprint' => 'Sprint Store',
+							'free' => 'Little Free Library Colusa'
+							}
 	gyms = client[:gyms]
 	raid_gym = gyms.find({'name': gym_aliases[gym]}).first
 	if !raid_gym 
 		return false
 	end
+	puts "got gym"
 	raid_boss_collection = raid_bosses.find({'name': boss.downcase})
 	if raid_boss_collection.count == 1
 		raid_boss = raid_boss_collection.first
+		puts "got raid boss"
 		time_string = time.length > 0 ? time.join(' ') : nil
 		if time_string
 			parsed_time = Chronic.parse(time_string)
