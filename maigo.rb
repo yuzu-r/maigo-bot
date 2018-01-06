@@ -33,7 +33,6 @@ def format_embed(search_term, gym)
 	return embed
 end
 
-
 usage_text = prefix  + 'whereis [gym name]'
 
 bot.command(:whereis, min_args: 1, description: 'find a Pogo gym', usage: usage_text) do |event, *gym| 
@@ -64,6 +63,21 @@ bot.command(:exit, help_available: false) do |event|
   break unless admin_array.include?(event.user.id.to_s)
   bot.send_message(event.channel.id, 'Bot is shutting down, byebye')
   exit
+end
+
+bot.command(:report, min_args: 2, description: 'report a raid') do |event, gym, boss, *time|
+	# should be its own bot, but heroku free hours limit...
+	gym_list = ['long', 'vets', 'frog', 'sprint']
+	if !gym_list.include?(gym)
+		bot.send_message(event.channel.id, 'Gym not recognized (must be long, vets, frog, or sprint)')
+	else
+		bot_response = raid_report(gym, boss, time)
+		if bot_response
+			"Raid at #{gym} registered successfully!"
+		else
+			"Raid report failed."
+		end		
+	end
 end
 
 bot.run
