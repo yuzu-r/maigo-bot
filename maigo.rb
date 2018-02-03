@@ -39,7 +39,7 @@ bot.command(:whereis, min_args: 1, description: 'find a PoGo gym', usage: usage_
 	search_term = gym.join(' ')
 	message = lookup(search_term)
 	if message['name']
-		embed_gym = format_embed(search_term, message)
+		embed_gym = 'hi' + format_embed(search_term, message)
 		bot.send_message(event.channel.id,'',false, embed_gym)
 	else
 		# either multiple gyms returned, or no gyms found
