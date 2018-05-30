@@ -22,7 +22,9 @@ bot.command(:whereis, min_args: 1, description: 'find a PoGo gym', usage: usage_
 		event << title
 		event << message['address']
 		event << message['landmark']
-		event << message['gmap']
+		if message['gmap']
+			event << '<' + message['gmap'] + '>'
+		end
 	else
 		# either multiple gyms returned, or no gyms found
 		message
@@ -32,15 +34,10 @@ end
 bot.command(:help, description: 'maigo-helper help') do |event|
   event << 'Type ***?whereis*** and a gym name or nickname to look up its location.'
   event << 'Try ***?whereis happy donuts*** to see it in action.'
-  event << 'It is not case sensitive. In most cases, it can guess an incomplete name, not typo-ed names.'
+  event << 'It is not case sensitive. In most cases, it can guess an incomplete name, but not misspelled names.'
   event << 'In other words, ***?whereis donut*** will work, but ***?whereis hapy donts*** will not.'
   event << 'If the entered name isn\'t unique, maigo-helper will return a list of suggestions to narrow down your search.'
 end
-
-bot.command(:link, description: 'advice for people with link preview turned off') do |event|
-	event << 'If you don\'t see the google maps link, you should turn your Link Preview on.'
-	event << 'You can find this in User Settings > Text & Images > Link Preview'
-end	
 
 bot.command(:exit, help_available: false) do |event|
   # This is a check that only allows a user with a specific ID to execute this command. Otherwise, everyone would be
