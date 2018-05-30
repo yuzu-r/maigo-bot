@@ -2,6 +2,7 @@ GEM
   remote: https://rubygems.org/
   specs:
     bson (4.2.2)
+    chronic (0.10.2)
     discordrb (3.2.1)
       discordrb-webhooks (~> 3.2.0.1)
       opus-ruby
@@ -30,6 +31,9 @@ GEM
       http-cookie (>= 1.0.2, < 2.0)
       mime-types (>= 1.16, < 4.0)
       netrc (~> 0.8)
+    thread_safe (0.3.6)
+    tzinfo (1.2.3)
+      thread_safe (~> 0.1)
     unf (0.1.4)
       unf_ext
     unf_ext (0.0.7.4)
@@ -42,8 +46,10 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  chronic (~> 0.10.2)
   discordrb (~> 3.2.1)
   mongo (~> 2.4.3)
+  tzinfo
 
 RUBY VERSION
    ruby 2.3.1p112
