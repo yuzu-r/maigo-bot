@@ -96,17 +96,18 @@ bot.command(:egg, min_args: 2, description: 'report an egg') do |event, tier, *t
 	    	else
 	    		egg_location = gym
 	    	end
-	    	raid_id = 'A2'
-	    	puts "server: #{event.channel.id}"
 	    	server_name = event.channel.server.name
 	    	channels = bot.find_channel('raids', server_name)
-	    	puts "channels: #{channels}"
-	    	p event.user
+	    	# member.displayname is what I need
+	    	# server.members[userid].displayname
+	    	# channels.users[id].displayname?
+	    	#puts "#{event.channel.users["342468337999151116"]}"
+	    	#puts "#{event.channel.server.member(event.user.id).nick}"
 	    	raid_channel_id = channels.count > 0 ? channels[0].id : event.channel.id
-	    	bot.send_message(raid_channel_id, "__Tier #{tier} raid **#{raid_id}** will begin at #{hatch_time} (despawns #{despawn_time})__")
-	    	bot.send_message(raid_channel_id, "Raid boss: not yet known - use `?update #{raid_id}` to edit the raid boss")
+	    	bot.send_message(raid_channel_id, "__Tier #{tier} raid will begin at #{hatch_time} (despawns #{despawn_time})__")
+	    	bot.send_message(raid_channel_id, "Raid boss: not yet known")
 	    	bot.send_message(raid_channel_id, "Location: #{egg_location}  #{gmap_link}")
-	    	bot.send_message(raid_channel_id, "reported by: #{event.user.username}##{event.user.discriminator}")
+	    	bot.send_message(raid_channel_id, "reported by: #{event.channel.server.member(event.user.id).nick}")
 	    	gym_event.respond "<@" + event.user.id.to_s + "> " + "Your report has been posted to the raids channel! Thanks! "
 	    	# figure out username vs some other name person goes by if name changes
 	    	#gym_event.respond "reported by: #{event.user.username}##{event.user.discriminator}"
