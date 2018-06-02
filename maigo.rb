@@ -43,11 +43,6 @@ bot.command(:help, description: 'maigo-helper help') do |event|
   event << 'If the entered name isn\'t unique, maigo-helper will return a list of suggestions to narrow down your search.'
 end
 
-bot.command(:link, description: 'advice for people with link preview turned off') do |event|
-	event << 'If you don\'t see the google maps link, you should turn your Link Preview on.'
-	event << 'You can find this in User Settings > Text & Images > Link Preview'
-end	
-
 bot.command(:exit, help_available: false) do |event|
   # This is a check that only allows a user with a specific ID to execute this command. Otherwise, everyone would be
   # able to shut your bot down whenever they wanted.
@@ -72,6 +67,7 @@ bot.command(:egg, min_args: 2, description: 'report an egg') do |event, tier, *t
 		else
 			parsed_time = Chronic.parse('this second')
 		end
+		puts parsed_time
   	# vagrant box is UTC time zone btw
   	tz = TZInfo::Timezone.get('America/Los_Angeles')
 
@@ -101,12 +97,17 @@ bot.command(:egg, min_args: 2, description: 'report an egg') do |event, tier, *t
 	    		egg_location = gym
 	    	end
 	    	raid_id = 'A2'
-	    	bot.send_message(450854061101547520, "__Tier #{tier} raid **#{raid_id}** will begin at #{hatch_time} (despawns #{despawn_time})__")
-	    	bot.send_message(450854061101547520, "Raid boss: not yet known - use `?update #{raid_id}` to edit the raid boss")
-	    	bot.send_message(450854061101547520, "Location: #{egg_location}  #{gmap_link}")
-	    	bot.send_message(450854061101547520, "reported by: #{event.user.username}##{event.user.discriminator}")
+	    	puts "server: #{event.channel.id}"
+	    	server_name = event.channel.server.name
+	    	channels = bot.find_channel('raids', server_name)
+	    	puts "channels: #{channels}"
+	    	p event.user
+	    	raid_channel_id = channels.count > 0 ? channels[0].id : event.channel.id
+	    	bot.send_message(raid_channel_id, "__Tier #{tier} raid **#{raid_id}** will begin at #{hatch_time} (despawns #{despawn_time})__")
+	    	bot.send_message(raid_channel_id, "Raid boss: not yet known - use `?update #{raid_id}` to edit the raid boss")
+	    	bot.send_message(raid_channel_id, "Location: #{egg_location}  #{gmap_link}")
+	    	bot.send_message(raid_channel_id, "reported by: #{event.user.username}##{event.user.discriminator}")
 	    	gym_event.respond "<@" + event.user.id.to_s + "> " + "Your report has been posted to the raids channel! Thanks! "
-	    	#gym_event.respond "Location: #{egg_location}  #{gmap_link}"
 	    	# figure out username vs some other name person goes by if name changes
 	    	#gym_event.respond "reported by: #{event.user.username}##{event.user.discriminator}"
 	   		message.delete
