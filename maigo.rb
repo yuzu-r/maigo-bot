@@ -28,9 +28,12 @@ bot.command(:whereis, min_args: 1, description: 'find a PoGo gym', usage: usage_
 		end
 		# suppress the map preview for brevity
 		google_maps = message['gmap'] ? '<' + message['gmap'] + '>' : nil
+		# trying logging
+		puts "successful lookup for #{search_term}"
 		event << google_maps
 	else
 		# either multiple gyms returned, or no gyms found
+		puts "not found/unique: #{search_term}"
 		message
 	end
 end
@@ -51,6 +54,51 @@ bot.command(:exit, help_available: false) do |event|
   break unless admin_array.include?(event.user.id.to_s)
   bot.send_message(event.channel.id, 'Bot is shutting down, byebye')
   exit
+end
+
+
+## to do: count commas for input, convert egg to the same format input as raid
+##
+
+
+bot.command(:raid, min_args: 1, description: 'report a raid') do |event, *raid_info|
+	server_name = event.server.name
+	channels = bot.find_channel('raids', server_name)
+	raid_channel_id = channels.count > 0 ? channels[0].id : bot.channel.id
+	#puts "raid_info: #{raid_info}"
+	#puts "#{raid_info.join('.')}"
+	parsed_raid_info = raid_info.join('.').gsub(/\./,' ')
+	#puts "parsed_raid_info: #{parsed_raid_info}"
+	parsed_raid_data = parsed_raid_info.split(',') 
+	#p parsed_raid_data
+	parsed_raid_data = parsed_raid_data.map {|s| s.strip}
+	boss, gym, minutes_left = parsed_raid_data
+
+	username = event.channel.server.member(event.user.id).nick || event.user.username
+
+=begin	gym_lookup = lookup(gym)
+	if gym_lookup['name']
+		if gym_lookup['name'].downcase != gym.downcase
+			raid_location = gym + ', aka ' + gym_lookup['name']
+		else
+			raid_location = gym_lookup['name']
+		end
+		gmap_link = gym_lookup['gmap'] ? '(<' + gym_lookup['gmap'] + '>)' : ''
+	else
+		raid_location = gym
+	end
+=end
+	tz = TZInfo::Timezone.get('America/Los_Angeles')
+
+	despawn_time = tz.utc_to_local(Time.now + minutes_left.to_i*60).strftime("%-I:%M %p")
+
+	bot.send_message(raid_channel_id, "**#{boss.capitalize} raid until #{despawn_time}! (#{minutes_left} mins left)**")
+	bot.send_message(raid_channel_id, "Gym: #{gym} (reported by #{username})")
+	#bot.send_message(raid_channel_id, "reported by: #{event.channel.server.member(event.user.id).nick}")
+	event.respond "<@" + event.user.id.to_s + "> " + "Your report has been posted to the raids channel! Thanks! "
+
+	true
+	return
 end
 
 CROSS_MARK = "\u274c".freeze
@@ -85,7 +133,8 @@ bot.command(:egg, min_args: 2, description: 'report an egg') do |event, tier, *t
 	    	true
 	    else
 	    	gym = gym_event.message.content
-	    	gym_lookup = lookup(gym)
+=begin	
+    	gym_lookup = lookup(gym)
 	    	if gym_lookup['name']
 					if gym_lookup['name'].downcase != gym.downcase
 						egg_location = gym + ', aka ' + gym_lookup['name']
@@ -96,13 +145,25 @@ bot.command(:egg, min_args: 2, description: 'report an egg') do |event, tier, *t
 	    	else
 	    		egg_location = gym
 	    	end
-	    	server_name = event.channel.server.name
+=end	  
+				username = event.channel.server.member(event.user.id).nick || event.user.username  	
+				server_name = event.channel.server.name
 	    	channels = bot.find_channel('raids', server_name)
 	    	raid_channel_id = channels.count > 0 ? channels[0].id : event.channel.id
-	    	bot.send_message(raid_channel_id, "__Tier #{tier} raid will begin at #{hatch_time} (despawns #{despawn_time})__")
-	    	bot.send_message(raid_channel_id, "Raid boss: not yet known")
-	    	bot.send_message(raid_channel_id, "Location: #{egg_location}  #{gmap_link}")
-	    	bot.send_message(raid_channel_id, "reported by: #{event.channel.server.member(event.user.id).nick}")
+	    	# get emoji for egg and its id
+	    	emoji_name='eggt5'
+	    	emojis = event.server.emojis
+	    	emoji_mention = ''
+	    	emojis.each do |key, e|
+				  #puts "#{e.name}, #{emoji_name}"
+				  if e.name == emoji_name
+				  	emoji_mention = e.mention
+				  	#puts "found it - #{emoji_mention}"
+				  	break
+				  end
+				end
+	    	bot.send_message(raid_channel_id, "#{emoji_mention} **#{tier}* egg hatches #{hatch_time} (despawns #{despawn_time})**")
+	    	bot.send_message(raid_channel_id, "Gym: #{gym} (reported by #{username})")
 	    	gym_event.respond "<@" + event.user.id.to_s + "> " + "Your report has been posted to the raids channel! Thanks! "
 	   		message.delete
 	   		true
@@ -122,6 +183,7 @@ bot.command(:egg, min_args: 2, description: 'report an egg') do |event, tier, *t
 	else
 		event.respond "<@" + event.user.id.to_s + "> " + "please start your report with the egg tier (1-5)"
 	end
+
 	return
 end
 
