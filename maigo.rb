@@ -67,6 +67,9 @@ bot.command(:raid, min_args: 1, description: 'report a raid') do |event, *raid_i
 	raid_channel_id = channels.count > 0 ? channels[0].id : bot.channel.id
 	username = event.channel.server.member(event.user.id).display_name
 
+	message_id = event.message
+	puts "message: #{message_id}"
+
 	parsed_raid_data = comma_parse(raid_info)
 	if parsed_raid_data.count != 3
 		error_msg = "Usage: ,raid <boss>,<gym>,<minutes remaining> (separated by commas)"
@@ -105,7 +108,6 @@ end
 
 bot.command(:egg, min_args: 1, description: 'report an egg') do |egg_event, *egg_info|  
 	tier_list = [1,2,3,4,5]
-	#tier, gym, minutes_to_hatch = comma_parse(egg_info)
 	parsed_egg_data = comma_parse(egg_info)
 	puts "egg: #{parsed_egg_data}"
 	if parsed_egg_data.count != 3
@@ -113,20 +115,10 @@ bot.command(:egg, min_args: 1, description: 'report an egg') do |egg_event, *egg
 		egg_event.respond "<@" + egg_event.user.id.to_s + "> " + usage_msg
 		return		
 	else
-		#tier, gym, time_to_hatch = parsed_egg_data
 		tier, gym, time_string = parsed_egg_data
 	end
 
-
 	if tier_list.include?(tier.to_i)
-		#time = "in " + minutes_to_hatch + " minutes"
-		#parsed_time = Chronic.parse(time)
-
-  	# vagrant box is UTC time zone btw
-  	#tz = TZInfo::Timezone.get('America/Los_Angeles')
-
-  	#hatch_time = tz.utc_to_local(parsed_time).strftime("%-I:%M %p")	
-  	#despawn_time = tz.utc_to_local(parsed_time + 45*60).strftime("%-I:%M %p")
   	hatch_data = get_active_range(time_string)
   	if !hatch_data
   		time_error_msg = 'Please enter minutes to hatch or a valid time (e.g. 12:23)'
