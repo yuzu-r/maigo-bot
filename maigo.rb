@@ -5,7 +5,9 @@ require_relative 'helpers'
 require 'chronic'
 require 'tzinfo'
 
-# to do: add toots sweets as an alias
+# db updates
+# add toots sweets as an alias
+# add meet you on the corner as an alias
 
 prefix = ENV['DISCORD_PREFIX']
 
@@ -107,24 +109,32 @@ bot.command(:egg, min_args: 1, description: 'report an egg') do |egg_event, *egg
 	parsed_egg_data = comma_parse(egg_info)
 	puts "egg: #{parsed_egg_data}"
 	if parsed_egg_data.count != 3
-		error_msg = "Usage: ,egg <tier>,<gym>,<minutes to hatch> (separated by commas)"
-		egg_event.respond "<@" + egg_event.user.id.to_s + "> " + error_msg
+		usage_msg = "Usage: ,egg <tier>,<gym>,<minutes to hatch> (separated by commas)"
+		egg_event.respond "<@" + egg_event.user.id.to_s + "> " + usage_msg
 		return		
 	else
-		tier, gym, minutes_to_hatch = parsed_egg_data
+		#tier, gym, time_to_hatch = parsed_egg_data
+		tier, gym, time_string = parsed_egg_data
 	end
 
 
 	if tier_list.include?(tier.to_i)
-		time = "in " + minutes_to_hatch + " minutes"
-		parsed_time = Chronic.parse(time)
+		#time = "in " + minutes_to_hatch + " minutes"
+		#parsed_time = Chronic.parse(time)
 
   	# vagrant box is UTC time zone btw
-  	tz = TZInfo::Timezone.get('America/Los_Angeles')
+  	#tz = TZInfo::Timezone.get('America/Los_Angeles')
 
-  	hatch_time = tz.utc_to_local(parsed_time).strftime("%-I:%M %p")	
-  	despawn_time = tz.utc_to_local(parsed_time + 45*60).strftime("%-I:%M %p")
-
+  	#hatch_time = tz.utc_to_local(parsed_time).strftime("%-I:%M %p")	
+  	#despawn_time = tz.utc_to_local(parsed_time + 45*60).strftime("%-I:%M %p")
+  	hatch_data = get_active_range(time_string)
+  	if !hatch_data
+  		time_error_msg = 'Please enter minutes to hatch or a valid time (e.g. 12:23)'
+  		egg_event.respond "<@" + egg_event.user.id.to_s + "> " + time_error_msg
+  		return
+  	else
+  		hatch_time, despawn_time = hatch_data
+  	end
 		username = egg_event.channel.server.member(egg_event.user.id).display_name
 		server_name = egg_event.channel.server.name
   	channels = bot.find_channel('raids', server_name)
