@@ -9,6 +9,9 @@ require 'tzinfo'
 # add toots sweets as an alias
 # add meet you on the corner as an alias
 
+# to dos
+# this fails silently: ,raid, ho, 3
+
 prefix = ENV['DISCORD_PREFIX']
 
 bot = Discordrb::Commands::CommandBot.new token: ENV['DISCORD_TOKEN'], 
@@ -67,9 +70,6 @@ bot.command(:raid, min_args: 1, description: 'report a raid') do |event, *raid_i
 	raid_channel_id = channels.count > 0 ? channels[0].id : bot.channel.id
 	username = event.channel.server.member(event.user.id).display_name
 
-	message_id = event.message
-	puts "message: #{message_id}"
-
 	parsed_raid_data = comma_parse(raid_info)
 	if parsed_raid_data.count != 3
 		error_msg = "Usage: ,raid <boss>,<gym>,<minutes remaining> (separated by commas)"
@@ -98,9 +98,10 @@ bot.command(:raid, min_args: 1, description: 'report a raid') do |event, *raid_i
 	embed.description = "Gym: #{gym_info} (reported by #{username})"
 	bot.send_message(raid_channel_id, '',false, embed)
 
+	event.message.react("✅")
 	#bot.send_message(raid_channel_id, "**#{boss.capitalize} raid until #{despawn_time}! (#{minutes_left} mins left)**")
 	#bot.send_message(raid_channel_id, "Gym: #{gym} (reported by #{username})")
-	event.respond "<@" + event.user.id.to_s + "> " + "Your report has been posted to the raids channel! Thanks! "
+	#event.respond "<@" + event.user.id.to_s + "> " + "Your report has been posted to the raids channel! Thanks! "
 
 	true
 	return
@@ -155,7 +156,8 @@ bot.command(:egg, min_args: 1, description: 'report an egg') do |egg_event, *egg
   	embed.color = color
   	embed.description = "Gym: #{gym_info} (reported by #{username})"
   	bot.send_message(egg_channel_id, '',false, embed)
-  	egg_event.respond "<@" + egg_event.user.id.to_s + "> " + "Your report has been posted to the raids channel! Thanks! "
+  	#egg_event.respond "<@" + egg_event.user.id.to_s + "> " + "Your report has been posted to the raids channel! Thanks! "
+  	egg_event.message.react("✅")
 	else
 		egg_event.respond "<@" + egg_event.user.id.to_s + "> " + "please start your report with the egg tier (1-5)"
 	end
