@@ -67,7 +67,8 @@ end
 bot.command(:raid, min_args: 1, description: 'report a raid') do |event, *raid_info|
 	server_name = event.server.name
 	channels = bot.find_channel('raids', server_name)
-	raid_channel_id = channels.count > 0 ? channels[0].id : bot.channel.id
+	#raid_channel_id = channels.count > 0 ? channels[0].id : bot.channel.id
+	raid_channel = channels.count > 0 ? channels[0] : bot.channel
 	username = event.channel.server.member(event.user.id).display_name
 
 	parsed_raid_data = comma_parse(raid_info)
@@ -80,7 +81,7 @@ bot.command(:raid, min_args: 1, description: 'report a raid') do |event, *raid_i
 	end
 
 	tz = TZInfo::Timezone.get('America/Los_Angeles')
-	despawn_time = tz.utc_to_local(Time.now + minutes_left.to_i*60).strftime("%-I:%M %p")
+	despawn_time = tz.utc_to_local(Time.now + minutes_left.to_i*60).strftime("%-I:%M")
 
 	#emoji_name = 'raid_ball'
 	#emoji_mention = get_emoji_mention(emoji_name, event.server.emojis)
@@ -96,13 +97,36 @@ bot.command(:raid, min_args: 1, description: 'report a raid') do |event, *raid_i
 	embed.title = "**#{boss.capitalize} raid until #{despawn_time}! (#{minutes_left} mins left)**"
 	embed.color = 15236612
 	embed.description = "Gym: #{gym_info} (reported by #{username})"
-	bot.send_message(raid_channel_id, '',false, embed)
+	bot.send_message(raid_channel.id, '',false, embed)
 
-	event.message.react("✅")
 	#bot.send_message(raid_channel_id, "**#{boss.capitalize} raid until #{despawn_time}! (#{minutes_left} mins left)**")
 	#bot.send_message(raid_channel_id, "Gym: #{gym} (reported by #{username})")
 	#event.respond "<@" + event.user.id.to_s + "> " + "Your report has been posted to the raids channel! Thanks! "
 
+	# look for a pinned message from the bot
+	#pinned_messages = event.channel.pins # <--- THIS NEEDS TO BE RAID_CHANNEL_ID 
+	pinned_messages = raid_channel.pins
+	if pinned_messages.count > 0
+		bot_pin = nil
+		pinned_messages.each do |message|
+			#puts message.author.display_name, message.author.id, bot.profile.id
+			if message.author.id == bot.profile.id
+				bot_pin = message
+				break
+			end
+		end
+	end
+	if bot_pin
+		# edit the message already in pinned
+		active_raids_msg = bot_pin.content + "\n#{boss.capitalize} (**#{despawn_time}**) @#{gym}"
+		bot_pin.edit(active_raids_msg)
+	else
+		# create a new pinned message by the bot
+		active_raids_msg = "**Active and Pending Raids** \n#{boss.capitalize} (**#{despawn_time}**) @#{gym}"
+		bot_pin = bot.send_message(raid_channel.id, active_raids_msg)
+		bot_pin.pin
+	end
+	event.message.react("✅")
 	true
 	return
 end
@@ -131,7 +155,8 @@ bot.command(:egg, min_args: 1, description: 'report an egg') do |egg_event, *egg
 		username = egg_event.channel.server.member(egg_event.user.id).display_name
 		server_name = egg_event.channel.server.name
   	channels = bot.find_channel('raids', server_name)
-  	egg_channel_id = channels.count > 0 ? channels[0].id : egg_event.channel.id
+  	#egg_channel_id = channels.count > 0 ? channels[0].id : egg_event.channel.id
+  	egg_channel = channels.count > 0 ? channels[0] : egg_event.channel
   	# get emoji for egg and its id
   	case tier.to_i
   	when 1..2
@@ -155,8 +180,32 @@ bot.command(:egg, min_args: 1, description: 'report an egg') do |egg_event, *egg
   	embed.title = "**#{tier}* hatches #{hatch_time} (despawns #{despawn_time})**"
   	embed.color = color
   	embed.description = "Gym: #{gym_info} (reported by #{username})"
-  	bot.send_message(egg_channel_id, '',false, embed)
+  	bot.send_message(egg_channel.id, '',false, embed)
   	#egg_event.respond "<@" + egg_event.user.id.to_s + "> " + "Your report has been posted to the raids channel! Thanks! "
+
+		# look for a pinned message from the bot
+		pinned_messages = egg_channel.pins
+		if pinned_messages.count > 0
+			bot_pin = nil
+			pinned_messages.each do |message|
+				puts message.author.display_name, message.author.id, bot.profile.id
+				if message.author.id == bot.profile.id
+					bot_pin = message
+					break
+				end
+			end
+		end
+		if bot_pin
+			# edit the message already in pinned
+			puts "editing existing message"
+			active_raids_msg = bot_pin.content + "\n#{tier}* (#{hatch_time} to **#{despawn_time}**) @#{gym}"
+			bot_pin.edit(active_raids_msg)
+		else
+			# create a new pinned message by the bot
+			active_raids_msg = "**Active and Pending Raids** \n#{tier}* (#{hatch_time} to **#{despawn_time}**) @#{gym}"
+			bot_pin = bot.send_message(egg_channel.id, active_raids_msg)
+			bot_pin.pin
+		end
   	egg_event.message.react("✅")
 	else
 		egg_event.respond "<@" + egg_event.user.id.to_s + "> " + "please start your report with the egg tier (1-5)"
@@ -164,5 +213,7 @@ bot.command(:egg, min_args: 1, description: 'report an egg') do |egg_event, *egg
 
 	return
 end
+
+
 
 bot.run
