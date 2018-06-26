@@ -6,11 +6,7 @@ require 'chronic'
 require 'tzinfo'
 
 # db updates
-# add toots sweets as an alias
-# add meet you on the corner as an alias
-
-# to dos
-# this fails silently: ,raid, ho, 3
+# add ec plaza bart as alias
 
 prefix = ENV['DISCORD_PREFIX']
 
@@ -21,6 +17,7 @@ bot = Discordrb::Commands::CommandBot.new token: ENV['DISCORD_TOKEN'],
 usage_text = prefix  + 'whereis [gym name]'
 
 bot.command(:whereis, min_args: 1, description: 'find a PoGo gym', usage: usage_text) do |event, *gym| 
+	username = event.channel.server.member(event.user.id).display_name
 	search_term = gym.join(' ')
 	message = lookup(search_term)
 	if message['name']
@@ -30,6 +27,9 @@ bot.command(:whereis, min_args: 1, description: 'find a PoGo gym', usage: usage_
 			title = message['name']
 		end
 		event << title
+		if message['is_ex_eligible']
+			event << 'EX Raid Location!'
+		end
 		event << message['address']
 		if message['landmark']
 			event << 'Near: ' + message['landmark']
@@ -37,21 +37,24 @@ bot.command(:whereis, min_args: 1, description: 'find a PoGo gym', usage: usage_
 		# suppress the map preview for brevity
 		google_maps = message['gmap'] ? '<' + message['gmap'] + '>' : nil
 		# trying logging
-		puts "successful lookup for #{search_term}"
+		puts "whereis: #{username} successful lookup for #{search_term}"
 		event << google_maps
 	else
 		# either multiple gyms returned, or no gyms found
-		puts "not found/unique: #{search_term}"
+		puts "whereis: #{username} not found/unique: #{search_term}"
 		message
 	end
 end
 
 bot.command(:help, description: 'maigo-helper help') do |event|
-  event << 'Type ***?whereis*** and a gym name or nickname to look up its location.'
-  event << 'Try ***?whereis happy donuts*** to see it in action.'
-  event << 'It is not case sensitive. In most cases, it can guess an incomplete name, not typo-ed names.'
-  event << 'In other words, ***?whereis donut*** will work, but ***?whereis hapy donts*** will not.'
-  event << 'If the entered name isn\'t unique, maigo-helper will return a list of suggestions to narrow down your search.'
+	username = event.channel.server.member(event.user.id).display_name
+	puts "help: #{username} asked for help"
+  event << "Type ***#{prefix}whereis*** and a gym name or nickname to look up its location."
+  event << "Try ***#{prefix}whereis happy donuts*** to see it in action."
+  event << "It is not case sensitive. In most cases, it can guess an incomplete name, not typo-ed names."
+  event << "In other words, ***#{prefix}whereis donut*** will work, but ***#{prefix}whereis hapy donts*** will not."
+  event << "If the entered name isn\'t unique, maigo-helper will return a list of suggestions to narrow down your search."
+  event << "\nType ***#{prefix}exgyms*** to see a listing of El Cerrito/Albany gyms known to hold ex raids."
 end
 
 bot.command(:exit, help_available: false) do |event|
@@ -64,6 +67,37 @@ bot.command(:exit, help_available: false) do |event|
   exit
 end
 
+bot.command(:exgyms, description: 'list gyms that are eligible to have ex raids') do |event|
+	username = event.channel.server.member(event.user.id).display_name
+	puts "exgyms: #{username} retrieving ex raid eligible gyms..."
+	ex_gyms = ex_gym_lookup
+	if !ex_gyms || ex_gyms.count == 0
+		bot.send_message(event.channel.id, 'No ex raid gyms found.')
+		return
+	else
+		embed = Discordrb::Webhooks::Embed.new
+		embed.title = "__**Area Gyms Eligible for EX Raids:**__"
+		embed.color = 15236612
+		description = ""
+		ex_gyms.each do |gym|
+			if gym['gmap']
+				gym_info = '[' + gym['name'] + ']' + '(' + gym['gmap'] + ')'
+			else
+				gym_info = gym['name']
+			end
+			description += "\n#{gym_info}"
+		end
+		if description.length > 2048
+			description = description.slice(0,2048)
+		end
+		embed.description = description
+		foot = Discordrb::Webhooks::EmbedFooter.new(text:"Click the gym name for google map.")
+		embed.footer = foot
+		bot.send_message(event.channel.id, '',false, embed)
+	end
+	return
+end
+
 bot.command(:raid, min_args: 1, description: 'report a raid') do |event, *raid_info|
 	server_name = event.server.name
 	channels = bot.find_channel('raids', server_name)
@@ -73,11 +107,11 @@ bot.command(:raid, min_args: 1, description: 'report a raid') do |event, *raid_i
 
 	parsed_raid_data = comma_parse(raid_info)
 	if parsed_raid_data.count != 3
-		error_msg = "Usage: ,raid <boss>,<gym>,<minutes remaining> (separated by commas)"
+		error_msg = "Usage: ,raid <gym>,<minutes remaining>, <boss> (separated by commas)"
 		event.respond "<@" + event.user.id.to_s + "> " + error_msg
 		return		
 	else
-		boss, gym, minutes_left = parsed_raid_data
+		gym, minutes_left, boss = parsed_raid_data
 	end
 
 	tz = TZInfo::Timezone.get('America/Los_Angeles')
@@ -104,7 +138,6 @@ bot.command(:raid, min_args: 1, description: 'report a raid') do |event, *raid_i
 	#event.respond "<@" + event.user.id.to_s + "> " + "Your report has been posted to the raids channel! Thanks! "
 
 	# look for a pinned message from the bot
-	#pinned_messages = event.channel.pins # <--- THIS NEEDS TO BE RAID_CHANNEL_ID 
 	pinned_messages = raid_channel.pins
 	if pinned_messages.count > 0
 		bot_pin = nil
@@ -127,7 +160,6 @@ bot.command(:raid, min_args: 1, description: 'report a raid') do |event, *raid_i
 		bot_pin.pin
 	end
 	event.message.react("✅")
-	true
 	return
 end
 
@@ -135,12 +167,14 @@ bot.command(:egg, min_args: 1, description: 'report an egg') do |egg_event, *egg
 	tier_list = [1,2,3,4,5]
 	parsed_egg_data = comma_parse(egg_info)
 	puts "egg: #{parsed_egg_data}"
-	if parsed_egg_data.count != 3
-		usage_msg = "Usage: ,egg <tier>,<gym>,<minutes to hatch> (separated by commas)"
+	if parsed_egg_data.count < 2 || parsed_egg_data.count > 3
+		usage_msg = "Usage: ,egg <gym>,<minutes to hatch>, <tier> (separated by commas)"
 		egg_event.respond "<@" + egg_event.user.id.to_s + "> " + usage_msg
-		return		
+		return
 	else
-		tier, gym, time_string = parsed_egg_data
+		tier = parsed_egg_data.count == 2 ? 5 : parsed_egg_data[2]
+		gym = parsed_egg_data[0]
+		time_string = parsed_egg_data[1]
 	end
 
 	if tier_list.include?(tier.to_i)
@@ -155,7 +189,6 @@ bot.command(:egg, min_args: 1, description: 'report an egg') do |egg_event, *egg
 		username = egg_event.channel.server.member(egg_event.user.id).display_name
 		server_name = egg_event.channel.server.name
   	channels = bot.find_channel('raids', server_name)
-  	#egg_channel_id = channels.count > 0 ? channels[0].id : egg_event.channel.id
   	egg_channel = channels.count > 0 ? channels[0] : egg_event.channel
   	# get emoji for egg and its id
   	case tier.to_i
@@ -188,7 +221,6 @@ bot.command(:egg, min_args: 1, description: 'report an egg') do |egg_event, *egg
 		if pinned_messages.count > 0
 			bot_pin = nil
 			pinned_messages.each do |message|
-				puts message.author.display_name, message.author.id, bot.profile.id
 				if message.author.id == bot.profile.id
 					bot_pin = message
 					break
@@ -208,12 +240,10 @@ bot.command(:egg, min_args: 1, description: 'report an egg') do |egg_event, *egg
 		end
   	egg_event.message.react("✅")
 	else
-		egg_event.respond "<@" + egg_event.user.id.to_s + "> " + "please start your report with the egg tier (1-5)"
+		egg_event.respond "<@" + egg_event.user.id.to_s + "> " + "please check the egg tier (1-5 allowed)"
 	end
 
 	return
 end
-
-
 
 bot.run

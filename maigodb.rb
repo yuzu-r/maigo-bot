@@ -26,9 +26,17 @@ def lookup(gym)
 	elsif documents.count == 1
 		return documents.first
 	else
-		puts "unsuccessful lookup for #{gym}"
 		return "I don't know where that is."
 	end
 end
 
+def ex_gym_lookup
+	client = Mongo::Client.new(ENV['MONGO_URI'])
 
+	db = client.database
+	collection = client[:gyms]
+	documents = collection.find(
+		{ 'is_ex_eligible': true },
+	)
+	return documents
+end
