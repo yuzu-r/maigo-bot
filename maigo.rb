@@ -115,8 +115,8 @@ bot.command(:raid, min_args: 1, description: 'report a raid') do |event, *raid_i
 	end
 
 	tz = TZInfo::Timezone.get('America/Los_Angeles')
-	despawn_time = tz.utc_to_local(Time.now + minutes_left.to_i*60).strftime("%-I:%M")
-
+	despawn_time = tz.utc_to_local(Time.now + minutes_left.to_i*60)
+	#despawn_time = tz.utc_to_local(Time.now + minutes_left.to_i*60).strftime("%-I:%M")
 	#emoji_name = 'raid_ball'
 	#emoji_mention = get_emoji_mention(emoji_name, event.server.emojis)
 
@@ -127,8 +127,10 @@ bot.command(:raid, min_args: 1, description: 'report a raid') do |event, *raid_i
 		gym_info = gym
 	end
 
+	response = register_raid(gym, despawn_time, boss, username)
+
 	embed = Discordrb::Webhooks::Embed.new
-	embed.title = "**#{boss.capitalize} raid until #{despawn_time}! (#{minutes_left} mins left)**"
+	embed.title = "**#{boss.capitalize} raid until #{despawn_time.strftime("%-I:%M")}! (#{minutes_left} mins left)**"
 	embed.color = 15236612
 	embed.description = "Gym: #{gym_info} (reported by #{username})"
 	bot.send_message(raid_channel.id, '',false, embed)
@@ -151,11 +153,11 @@ bot.command(:raid, min_args: 1, description: 'report a raid') do |event, *raid_i
 	end
 	if bot_pin
 		# edit the message already in pinned
-		active_raids_msg = bot_pin.content + "\n#{boss.capitalize} (**#{despawn_time}**) @#{gym}"
+		active_raids_msg = bot_pin.content + "\n#{boss.capitalize} (**#{despawn_time.strftime("%-I:%M")}**) @#{gym}"
 		bot_pin.edit(active_raids_msg)
 	else
 		# create a new pinned message by the bot
-		active_raids_msg = "**Active and Pending Raids** \n#{boss.capitalize} (**#{despawn_time}**) @#{gym}"
+		active_raids_msg = "**Active and Pending Raids** \n#{boss.capitalize} (**#{despawn_time.strftime("%-I:%M")}**) @#{gym}"
 		bot_pin = bot.send_message(raid_channel.id, active_raids_msg)
 		bot_pin.pin
 	end
@@ -209,12 +211,15 @@ bot.command(:egg, min_args: 1, description: 'report an egg') do |egg_event, *egg
 		end
   	#bot.send_message(egg_channel_id, "#{emoji_mention} **#{tier}* egg hatches #{hatch_time} (despawns #{despawn_time})**")
   	#bot.send_message(egg_channel_id, "Gym: #{gym} (reported by #{username})")
+
+  	response = register_egg(gym, hatch_time, despawn_time, tier.to_i, username)
+  	puts "response: #{response}"
+  	p response
   	embed = Discordrb::Webhooks::Embed.new
-  	embed.title = "**#{tier}* hatches #{hatch_time} (despawns #{despawn_time})**"
+  	embed.title = "**#{tier}* hatches #{hatch_time.strftime("%-I:%M")} (despawns #{despawn_time.strftime("%-I:%M")})**"
   	embed.color = color
   	embed.description = "Gym: #{gym_info} (reported by #{username})"
   	bot.send_message(egg_channel.id, '',false, embed)
-  	#egg_event.respond "<@" + egg_event.user.id.to_s + "> " + "Your report has been posted to the raids channel! Thanks! "
 
 		# look for a pinned message from the bot
 		pinned_messages = egg_channel.pins
@@ -229,18 +234,63 @@ bot.command(:egg, min_args: 1, description: 'report an egg') do |egg_event, *egg
 		end
 		if bot_pin
 			# edit the message already in pinned
-			puts "editing existing message"
-			active_raids_msg = bot_pin.content + "\n#{tier}* (#{hatch_time} to **#{despawn_time}**) @#{gym}"
+			active_raids_msg = bot_pin.content + "\n#{tier}* (#{hatch_time.strftime("%-I:%M")} to **#{despawn_time.strftime("%-I:%M")}**) @ #{gym}"
 			bot_pin.edit(active_raids_msg)
 		else
 			# create a new pinned message by the bot
-			active_raids_msg = "**Active and Pending Raids** \n#{tier}* (#{hatch_time} to **#{despawn_time}**) @#{gym}"
+			active_raids_msg = "**Active and Pending Raids** \n#{tier}* (#{hatch_time.strftime("%-I:%M")} to **#{despawn_time.strftime("%-I:%M")}**) @ #{gym}"
 			bot_pin = bot.send_message(egg_channel.id, active_raids_msg)
 			bot_pin.pin
 		end
   	egg_event.message.react("✅")
 	else
 		egg_event.respond "<@" + egg_event.user.id.to_s + "> " + "please check the egg tier (1-5 allowed)"
+	end
+
+	return
+end
+
+bot.command(:update, description: 'retrieve active raids') do |event|
+	active_raids = find_active_raids
+	raid_message = "**Active and Pending Raids**"
+	if !active_raids || active_raids.count == 0 
+		event.respond "There are no active raids or pending eggs at this time. Rats."
+	else
+	  active_raids.each do |raid|
+	  	# prepare an egg message or a raid message
+	  	if raid['tier']
+				raid_message += "\n#{raid['tier']}* (#{raid['hatch_time'].strftime("%-I:%M")} to **#{raid['despawn_time'].strftime("%-I:%M")}**) @ #{raid['gym']}"
+			else
+				raid_message += "\n#{raid['boss'].capitalize} (**#{raid['despawn_time'].strftime("%-I:%M")}**) @ #{raid['gym']} "
+			end
+		end
+		event.respond raid_message
+	end
+	# update the pinned message
+	# look for a pinned message from the bot
+	server_name = event.channel.server.name
+	channels = bot.find_channel('raids', server_name)
+	raid_channel = channels.count > 0 ? channels[0] : event.channel
+
+	pinned_messages = raid_channel.pins
+	if pinned_messages.count > 0
+		bot_pin = nil
+		pinned_messages.each do |message|
+			if message.author.id == bot.profile.id
+				bot_pin = message
+				break
+			end
+		end
+	end
+	if bot_pin
+		# edit the message already in pinned
+		#active_raids_msg = bot_pin.content + "\n#{tier}* (#{hatch_time.strftime("%-I:%M")} to **#{despawn_time.strftime("%-I:%M")}**) @#{gym}"
+		bot_pin.edit(raid_message)
+	else
+		# create a new pinned message by the bot
+		#active_raids_msg = "**Active and Pending Raids** \n#{tier}* (#{hatch_time.strftime("%-I:%M")} to **#{despawn_time.strftime("%-I:%M")}**) @#{gym}"
+		bot_pin = bot.send_message(raid_channel.id, raid_message)
+		bot_pin.pin
 	end
 
 	return

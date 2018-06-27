@@ -29,18 +29,23 @@ def get_active_range(time_string)
 	if time_string.include?(':')
 		start_time = convert_time(time_string)
 		return nil if !start_time
+		puts "hatch time passing in time: #{start_time}"
 		# with a good start time, calculate the end time (45 mins later for eggs)
-  	hatch_time = start_time.strftime("%-I:%M")	
-  	despawn_time = (start_time + 45*60).strftime("%-I:%M")
-  	return [hatch_time, despawn_time]
+  	#hatch_time = start_time.strftime("%-I:%M")	
+  	#despawn_time = (start_time + 45*60).strftime("%-I:%M")
+  	despawn_time = start_time + 45*60
+  	#return [hatch_time, despawn_time]
+  	return [start_time, despawn_time]
 	else
-		# to do: strip out all but the number and allow user to do "in x minutes" in the command line
 		time = "in " + time_string + " minutes"
 		parsed_time = Chronic.parse(time)
 		return nil if !parsed_time
-  	hatch_time = tz.utc_to_local(parsed_time).strftime("%-I:%M")	
-  	despawn_time = tz.utc_to_local(parsed_time + 45*60).strftime("%-I:%M")
-  	return [hatch_time, despawn_time]		
+		puts "hatch time passing in minutes: #{tz.utc_to_local(parsed_time)}"
+  	#hatch_time = tz.utc_to_local(parsed_time).strftime("%-I:%M")	
+  	#despawn_time = tz.utc_to_local(parsed_time + 45*60).strftime("%-I:%M")
+  	start_time = tz.utc_to_local(parsed_time)
+  	despawn_time = start_time + 45 * 60
+  	return [start_time, despawn_time]		
 	end
 end
 
