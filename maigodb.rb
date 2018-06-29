@@ -38,15 +38,15 @@ def ex_gym_lookup
 	return documents
 end
 
-def register_egg(gym, hatch_time, despawn_time, tier, reported_by)
+def register_egg(gym, hatch_time, despawn_time, tier, reported_by, server_id)
 	collection = CLIENT[:raid_reports]
 
-	egg = { gym: gym, hatch_time: hatch_time, despawn_time: despawn_time, tier: tier, reported_by: reported_by }
+	egg = { gym: gym, hatch_time: hatch_time, despawn_time: despawn_time, tier: tier, reported_by: reported_by, server_id: server_id.to_s }
 	response = collection.insert_one(egg)
 	return response
 end
 
-def find_active_raids
+def find_active_raids(server_id)
 	collection = CLIENT[:raid_reports]
 
 	tz = TZInfo::Timezone.get('America/Los_Angeles')
@@ -55,14 +55,27 @@ def find_active_raids
 	puts "local server time: #{local_server_time}"
 
 	active_raids = collection.find(
-		{ 'despawn_time': {'$gt' => local_server_time} }
+		{ 'server_id': server_id,
+			'despawn_time': {'$gt' => local_server_time} }
 	).sort({ 'despawn_time': 1 }).to_a
 	return active_raids
 end
 
-def register_raid(gym, despawn_time, boss, reported_by)
+def register_raid(gym, despawn_time, boss, reported_by, server_id)
 	collection = CLIENT[:raid_reports]
-	raid = { gym: gym, despawn_time: despawn_time, boss: boss, reported_by: reported_by }
+	raid = { gym: gym, despawn_time: despawn_time, boss: boss, reported_by: reported_by, server_id: server_id.to_s }
 	response = collection.insert_one(raid)
+	return response
+end
+
+def get_reporters(server_id)
+	collection = CLIENT[:raid_reports]
+
+	response = collection.aggregate([
+								{'$match' => {"server_id" => server_id}},
+								{'$group' => {'_id' => "$reported_by", 'total' => {'$sum' => 1}}},
+								{'$sort' => {total: -1}},
+								{'$limit' => 10}
+							])
 	return response
 end

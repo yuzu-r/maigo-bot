@@ -5,9 +5,6 @@ require_relative 'helpers'
 require 'chronic'
 require 'tzinfo'
 
-# db updates
-# add ec plaza bart as alias
-
 prefix = ENV['DISCORD_PREFIX']
 
 bot = Discordrb::Commands::CommandBot.new token: ENV['DISCORD_TOKEN'], 
@@ -17,7 +14,7 @@ bot = Discordrb::Commands::CommandBot.new token: ENV['DISCORD_TOKEN'],
 usage_text = prefix  + 'whereis [gym name]'
 
 bot.command(:whereis, min_args: 1, description: 'find a PoGo gym', usage: usage_text) do |event, *gym| 
-	username = event.channel.server.member(event.user.id).display_name
+	username = event.user.display_name
 	search_term = gym.join(' ')
 	message = lookup(search_term)
 	if message['name']
@@ -47,7 +44,7 @@ bot.command(:whereis, min_args: 1, description: 'find a PoGo gym', usage: usage_
 end
 
 bot.command(:help, description: 'maigo-helper help') do |event|
-	username = event.channel.server.member(event.user.id).display_name
+	username = event.user.display_name
 	puts "help: #{username} asked for help"
   event << "Type ***#{prefix}whereis*** and a gym name or nickname to look up its location."
   event << "Try ***#{prefix}whereis happy donuts*** to see it in action."
@@ -68,7 +65,7 @@ bot.command(:exit, help_available: false) do |event|
 end
 
 bot.command(:exgyms, description: 'list gyms that are eligible to have ex raids') do |event|
-	username = event.channel.server.member(event.user.id).display_name
+	username = event.user.display_name
 	puts "exgyms: #{username} retrieving ex raid eligible gyms..."
 	ex_gyms = ex_gym_lookup
 	if !ex_gyms || ex_gyms.count == 0
@@ -99,11 +96,8 @@ bot.command(:exgyms, description: 'list gyms that are eligible to have ex raids'
 end
 
 bot.command(:raid, min_args: 1, description: 'report a raid') do |event, *raid_info|
-	server_name = event.server.name
-	channels = bot.find_channel('raids', server_name)
-	#raid_channel_id = channels.count > 0 ? channels[0].id : bot.channel.id
-	raid_channel = channels.count > 0 ? channels[0] : bot.channel
-	username = event.channel.server.member(event.user.id).display_name
+	raid_channel = get_raids_channel(event.server) || bot.channel
+	username = event.user.display_name
 
 	parsed_raid_data = comma_parse(raid_info)
 	if parsed_raid_data.count != 3
@@ -116,9 +110,6 @@ bot.command(:raid, min_args: 1, description: 'report a raid') do |event, *raid_i
 
 	tz = TZInfo::Timezone.get('America/Los_Angeles')
 	despawn_time = tz.utc_to_local(Time.now + minutes_left.to_i*60)
-	#despawn_time = tz.utc_to_local(Time.now + minutes_left.to_i*60).strftime("%-I:%M")
-	#emoji_name = 'raid_ball'
-	#emoji_mention = get_emoji_mention(emoji_name, event.server.emojis)
 
 	gym_data = lookup(gym)
 	if gym_data['gmap']
@@ -127,37 +118,25 @@ bot.command(:raid, min_args: 1, description: 'report a raid') do |event, *raid_i
 		gym_info = gym
 	end
 
-	response = register_raid(gym, despawn_time, boss, username)
-
+	response = register_raid(gym, despawn_time, boss, username, event.server.id)
+	if !response || response.n != 1
+		puts "could not log raid to database"
+	end
 	embed = Discordrb::Webhooks::Embed.new
 	embed.title = "**#{boss.capitalize} raid until #{despawn_time.strftime("%-I:%M")}! (#{minutes_left} mins left)**"
 	embed.color = 15236612
 	embed.description = "Gym: #{gym_info} (reported by #{username})"
 	bot.send_message(raid_channel.id, '',false, embed)
 
-	#bot.send_message(raid_channel_id, "**#{boss.capitalize} raid until #{despawn_time}! (#{minutes_left} mins left)**")
-	#bot.send_message(raid_channel_id, "Gym: #{gym} (reported by #{username})")
-	#event.respond "<@" + event.user.id.to_s + "> " + "Your report has been posted to the raids channel! Thanks! "
-
 	# look for a pinned message from the bot
-	pinned_messages = raid_channel.pins
-	if pinned_messages.count > 0
-		bot_pin = nil
-		pinned_messages.each do |message|
-			#puts message.author.display_name, message.author.id, bot.profile.id
-			if message.author.id == bot.profile.id
-				bot_pin = message
-				break
-			end
-		end
-	end
+	bot_pin = get_bot_pin(raid_channel, bot.profile.id)
 	if bot_pin
 		# edit the message already in pinned
-		active_raids_msg = bot_pin.content + "\n#{boss.capitalize} (**#{despawn_time.strftime("%-I:%M")}**) @#{gym}"
+		active_raids_msg = bot_pin.content + "\n#{boss.capitalize} (**#{despawn_time.strftime("%-I:%M")}**) @ #{gym}"
 		bot_pin.edit(active_raids_msg)
 	else
 		# create a new pinned message by the bot
-		active_raids_msg = "**Active and Pending Raids** \n#{boss.capitalize} (**#{despawn_time.strftime("%-I:%M")}**) @#{gym}"
+		active_raids_msg = "**Active and Pending Raids** \n#{boss.capitalize} (**#{despawn_time.strftime("%-I:%M")}**) @ #{gym}"
 		bot_pin = bot.send_message(raid_channel.id, active_raids_msg)
 		bot_pin.pin
 	end
@@ -168,7 +147,6 @@ end
 bot.command(:egg, min_args: 1, description: 'report an egg') do |egg_event, *egg_info|  
 	tier_list = [1,2,3,4,5]
 	parsed_egg_data = comma_parse(egg_info)
-	puts "egg: #{parsed_egg_data}"
 	if parsed_egg_data.count < 2 || parsed_egg_data.count > 3
 		usage_msg = "Usage: ,egg <gym>,<minutes to hatch>, <tier> (separated by commas)"
 		egg_event.respond "<@" + egg_event.user.id.to_s + "> " + usage_msg
@@ -188,11 +166,10 @@ bot.command(:egg, min_args: 1, description: 'report an egg') do |egg_event, *egg
   	else
   		hatch_time, despawn_time = hatch_data
   	end
-		username = egg_event.channel.server.member(egg_event.user.id).display_name
-		server_name = egg_event.channel.server.name
-  	channels = bot.find_channel('raids', server_name)
-  	egg_channel = channels.count > 0 ? channels[0] : egg_event.channel
-  	# get emoji for egg and its id
+  	egg_channel = get_raids_channel(egg_event.server) || bot.channel
+		username = egg_event.user.display_name
+
+  	# match color to tier
   	case tier.to_i
   	when 1..2
   		color = 16724889
@@ -201,7 +178,6 @@ bot.command(:egg, min_args: 1, description: 'report an egg') do |egg_event, *egg
   	else
   		color = 8028868
   	end
-		#emoji_mention = get_emoji_mention(emoji_name, egg_event.server.emojis)
 
 		gym_data = lookup(gym)
 		if gym_data['gmap']
@@ -209,12 +185,12 @@ bot.command(:egg, min_args: 1, description: 'report an egg') do |egg_event, *egg
 		else
 			gym_info = gym
 		end
-  	#bot.send_message(egg_channel_id, "#{emoji_mention} **#{tier}* egg hatches #{hatch_time} (despawns #{despawn_time})**")
-  	#bot.send_message(egg_channel_id, "Gym: #{gym} (reported by #{username})")
 
-  	response = register_egg(gym, hatch_time, despawn_time, tier.to_i, username)
-  	puts "response: #{response}"
-  	p response
+  	response = register_egg(gym, hatch_time, despawn_time, tier.to_i, username, egg_event.server.id)
+		if !response || response.n != 1
+			puts "could not log egg to database"
+		end
+
   	embed = Discordrb::Webhooks::Embed.new
   	embed.title = "**#{tier}* hatches #{hatch_time.strftime("%-I:%M")} (despawns #{despawn_time.strftime("%-I:%M")})**"
   	embed.color = color
@@ -222,16 +198,7 @@ bot.command(:egg, min_args: 1, description: 'report an egg') do |egg_event, *egg
   	bot.send_message(egg_channel.id, '',false, embed)
 
 		# look for a pinned message from the bot
-		pinned_messages = egg_channel.pins
-		if pinned_messages.count > 0
-			bot_pin = nil
-			pinned_messages.each do |message|
-				if message.author.id == bot.profile.id
-					bot_pin = message
-					break
-				end
-			end
-		end
+		bot_pin = get_bot_pin(egg_channel, bot.profile.id)
 		if bot_pin
 			# edit the message already in pinned
 			active_raids_msg = bot_pin.content + "\n#{tier}* (#{hatch_time.strftime("%-I:%M")} to **#{despawn_time.strftime("%-I:%M")}**) @ #{gym}"
@@ -250,8 +217,8 @@ bot.command(:egg, min_args: 1, description: 'report an egg') do |egg_event, *egg
 	return
 end
 
-bot.command(:update, description: 'retrieve active raids') do |event|
-	active_raids = find_active_raids
+bot.command(:update, description: 'sort and pin active raids') do |event|
+	active_raids = find_active_raids(event.server.id.to_s)
 	raid_message = "**Active and Pending Raids**"
 	if !active_raids || active_raids.count == 0 
 		event.respond "There are no active raids or pending eggs at this time. Rats."
@@ -267,32 +234,39 @@ bot.command(:update, description: 'retrieve active raids') do |event|
 		event.respond raid_message
 	end
 	# update the pinned message
-	# look for a pinned message from the bot
-	server_name = event.channel.server.name
-	channels = bot.find_channel('raids', server_name)
-	raid_channel = channels.count > 0 ? channels[0] : event.channel
-
-	pinned_messages = raid_channel.pins
-	if pinned_messages.count > 0
-		bot_pin = nil
-		pinned_messages.each do |message|
-			if message.author.id == bot.profile.id
-				bot_pin = message
-				break
-			end
-		end
-	end
+	raid_channel = get_raids_channel(event.server) || bot.channel
+	bot_pin = get_bot_pin(raid_channel, bot.profile.id)
 	if bot_pin
 		# edit the message already in pinned
-		#active_raids_msg = bot_pin.content + "\n#{tier}* (#{hatch_time.strftime("%-I:%M")} to **#{despawn_time.strftime("%-I:%M")}**) @#{gym}"
 		bot_pin.edit(raid_message)
 	else
 		# create a new pinned message by the bot
-		#active_raids_msg = "**Active and Pending Raids** \n#{tier}* (#{hatch_time.strftime("%-I:%M")} to **#{despawn_time.strftime("%-I:%M")}**) @#{gym}"
 		bot_pin = bot.send_message(raid_channel.id, raid_message)
 		bot_pin.pin
 	end
+	return
+end
 
+bot.command(:leaderboard, description: 'raid/egg reporter leaderboard') do |event|
+	response = get_reporters(event.server.id.to_s)
+	rank = 1
+	reporter_text = "Thank you to *all* reporters!"
+	reporter_text += "\n**+=+=+=+=+=+=+=+=+=+=+**\n"
+	response.each do |reporter|
+		if rank == 1
+			reporter_text += "\n:first_place: #{reporter['_id']} (#{reporter['total']})"
+		else
+			reporter_text += "\n    #{reporter['_id']} (#{reporter['total']})"
+		end
+		rank += 1
+	end
+	reporter_text += "\n\n**+=+=+=+=+=+=+=+=+=+=+**"
+	embed = Discordrb::Webhooks::Embed.new
+	embed.title = "__**Raid Reporter Leaderboard**__"
+	embed.color = 15236612
+	embed.description = reporter_text
+	embed.timestamp = Time.now
+	bot.send_message(event.channel.id,'',false, embed)
 	return
 end
 
