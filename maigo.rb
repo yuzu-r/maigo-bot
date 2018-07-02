@@ -3,6 +3,7 @@ require 'discordrb'
 require_relative 'maigodb'
 
 prefix = ENV['DISCORD_PREFIX']
+logging = ENV['LOGGING']
 
 bot = Discordrb::Commands::CommandBot.new token: ENV['DISCORD_TOKEN'], 
 																					client_id: ENV['DISCORD_CLIENT_ID'], 
@@ -11,7 +12,6 @@ bot = Discordrb::Commands::CommandBot.new token: ENV['DISCORD_TOKEN'],
 usage_text = prefix  + 'whereis [gym name]'
 
 bot.command(:whereis, min_args: 1, description: 'find a PoGo gym', usage: usage_text) do |event, *gym| 
-	username = event.channel.server.member(event.user.id).display_name
 	search_term = gym.join(' ')
 	message = lookup(search_term)
 	if message['name']
@@ -30,25 +30,38 @@ bot.command(:whereis, min_args: 1, description: 'find a PoGo gym', usage: usage_
 		end
 		# suppress the map preview for brevity
 		google_maps = message['gmap'] ? '<' + message['gmap'] + '>' : nil
-		# trying logging
-		puts "whereis: #{username} successful lookup for #{search_term}"
+		if logging.to_s == 'true'
+			response = log(event.server.id, event.user.id, 'whereis', search_term, true)
+			if !response || response.n != 1
+				puts "could not log whereis to database, successful search for #{search_term}"
+			end
+		end
 		event << google_maps
 	else
 		# either multiple gyms returned, or no gyms found
-		puts "whereis: #{username} not found/unique: #{search_term}"
+		if logging.to_s == 'true'
+			response = log(event.server.id, event.user.id, 'whereis', search_term, false)
+	 		if !response || response.n != 1
+	 			puts "could not log whereis to database, unsuccessful search for #{search_term}"
+			end
+		end
 		message
 	end
 end
 
 bot.command(:help, description: 'maigo-helper help') do |event|
-	username = event.channel.server.member(event.user.id).display_name
-	puts "help: #{username} asked for help"
   event << "Type ***#{prefix}whereis*** and a gym name or nickname to look up its location."
   event << "Try ***#{prefix}whereis happy donuts*** to see it in action."
   event << "It is not case sensitive. In most cases, it can guess an incomplete name, not typo-ed names."
   event << "In other words, ***#{prefix}whereis donut*** will work, but ***#{prefix}whereis hapy donts*** will not."
   event << "If the entered name isn\'t unique, maigo-helper will return a list of suggestions to narrow down your search."
   event << "\nType ***#{prefix}exgyms*** to see a listing of El Cerrito/Albany gyms known to hold ex raids."
+	if logging.to_s == 'true'
+		response = log(event.server.id, event.user.id, 'help', nil, true)
+		if !response || response.n != 1
+			puts "could not log help command to database"
+		end
+	end
 end
 
 bot.command(:exit, help_available: false) do |event|
@@ -62,8 +75,6 @@ bot.command(:exit, help_available: false) do |event|
 end
 
 bot.command(:exgyms, description: 'list gyms that are eligible to have ex raids') do |event|
-	username = event.channel.server.member(event.user.id).display_name
-	puts "exgyms: #{username} retrieving ex raid eligible gyms..."
 	ex_gyms = ex_gym_lookup
 	if !ex_gyms || ex_gyms.count == 0
 		bot.send_message(event.channel.id, 'No ex raid gyms found.')
@@ -88,6 +99,12 @@ bot.command(:exgyms, description: 'list gyms that are eligible to have ex raids'
 		foot = Discordrb::Webhooks::EmbedFooter.new(text:"Click the gym name for google map.")
 		embed.footer = foot
 		bot.send_message(event.channel.id, '',false, embed)
+		if logging.to_s == 'true'
+			response = log(event.server.id, event.user.id, 'exgyms', nil, true)
+			if !response || response.n != 1
+				puts "could not log exgyms command to database"
+			end
+		end
 	end
 	return
 end
