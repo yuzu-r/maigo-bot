@@ -1,12 +1,10 @@
 require 'mongo'
 
 Mongo::Logger.logger.level = Logger::INFO
+CLIENT = Mongo::Client.new(ENV['MONGO_URI'])
 
 def lookup(gym)
-	client = Mongo::Client.new(ENV['MONGO_URI'])
-
-	db = client.database
-	collection = client[:gyms]
+	collection = CLIENT[:gyms]
 	exact_string =  '"' + gym + '"'
 	documents = collection.find(
 		{ '$text': { '$search': exact_string } },
@@ -31,12 +29,16 @@ def lookup(gym)
 end
 
 def ex_gym_lookup
-	client = Mongo::Client.new(ENV['MONGO_URI'])
-
-	db = client.database
-	collection = client[:gyms]
+	collection = CLIENT[:gyms]
 	documents = collection.find(
 		{ 'is_ex_eligible': true },
 	)
 	return documents
+end
+
+def log(server_id, user_id, command, params, is_success)
+	collection = CLIENT[:logs]
+	entry = { server_id: server_id.to_s, user_id: user_id.to_s, command: command, params: params, is_success: is_success, insert_date: Time.now }
+	response = collection.insert_one(entry)
+	return response	
 end
