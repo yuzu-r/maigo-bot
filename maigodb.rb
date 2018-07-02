@@ -11,16 +11,16 @@ def lookup(gym)
 	)
 
 	if documents.count > 1
-		msg = "Multiple matches found. Did you mean one of these? "
+		msg = "**Multiple matches found. Did you mean one of these?**\n"
 		multiples = []
 		documents.each_with_index do |doc, index|
 			multiples.push(doc['name'])
-			if index > 9
-				msg = "10+ matches found. Returning the first 10 suggestions: "
+			if index >= 9
+				msg = "**10+ matches found. Returning the first 10 suggestions:**\n"
 				break
 			end
 		end
-		return msg + multiples.join(', ')
+		return msg + multiples.join("\n")
 	elsif documents.count == 1
 		return documents.first
 	else
