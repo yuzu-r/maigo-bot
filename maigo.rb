@@ -217,8 +217,8 @@ bot.command(:egg, min_args: 1, description: 'report an egg') do |egg_event, *egg
 	return
 end
 
-bot.command(:update, description: 'sort and pin active raids') do |event|
-	active_raids = find_active_raids(event.server.id.to_s)
+def sort_and_pin(event, bot)
+	active_raids = find_active_raids(event.server.id.to_s)	
 	raid_message = "**Active and Pending Raids**"
 	if !active_raids || active_raids.count == 0 
 		event.respond "There are no active raids or pending eggs at this time. Rats."
@@ -244,6 +244,10 @@ bot.command(:update, description: 'sort and pin active raids') do |event|
 		bot_pin = bot.send_message(raid_channel.id, raid_message)
 		bot_pin.pin
 	end
+end
+
+bot.command(:update, description: 'sort and pin active raids') do |event|
+	sort_and_pin(event, bot)
 	return
 end
 
@@ -268,6 +272,66 @@ bot.command(:leaderboard, description: 'raid/egg reporter leaderboard') do |even
 	embed.timestamp = Time.now
 	bot.send_message(event.channel.id,'',false, embed)
 	return
+end
+
+bot.command(:rm) do |event|
+	raids = find_active_raids(event.server.id.to_s)
+	if !raids || raids.count == 0
+		no_message = bot.send_message(event.channel.id, 'There are no raids to delete.')
+		event.message.delete
+		sleep 3
+		no_message.delete
+	else
+		raid_id = 1
+		delete_text = "Enter the number of the raid you wish to delete, or 0 to cancel.\n0) **Cancel delete request**"
+		raids.each do |raid|
+	  	if raid['tier']
+				delete_text += "\n#{raid_id.to_s}) #{raid['tier']}* (#{raid['hatch_time'].strftime("%-I:%M")} to **#{raid['despawn_time'].strftime("%-I:%M")}**) @ #{raid['gym']}"
+			else
+				delete_text += "\n#{raid_id.to_s}) #{raid['boss'].capitalize} (**#{raid['despawn_time'].strftime("%-I:%M")}**) @ #{raid['gym']} "
+			end
+			raid_id += 1
+		end
+		initial_message = event.respond delete_text
+		response = event.message.await!(timeout: 5, user: event.user)
+		if response 
+			target_raid = response.content.to_i
+			if target_raid == 0
+				cancel_message = event.respond "Delete cancelled - no changes made. Cleaning up and bugging out!"
+				initial_message.delete
+				response.message.delete
+				event.message.delete
+				sleep 3
+				cancel_message.delete
+			elsif target_raid > raid_id - 1
+				invalid_message = event.respond "Can't find that raid to delete. Cleaning up and carrying on."
+				initial_message.delete
+				response.message.delete
+				event.message.delete
+				sleep 3
+				invalid_message.delete
+			else
+				raid_delete_message = event.respond "ok, I will delete raid #{target_raid.to_s}."
+				db_response = delete_raid(raids[target_raid-1]["_id"])
+				if !db_response || db_response.n != 1
+					puts "Unable to delete raid."
+				else
+					initial_message.delete
+					response.message.delete
+					event.message.delete
+					sort_and_pin(event, bot)
+					sleep 3
+					raid_delete_message.delete
+				end
+			end
+		else
+			timeout_message = event.respond "Timeout - nothing will be deleted."
+			initial_message.delete
+			event.message.delete
+			sleep 3
+			timeout_message.delete
+		end
+	end
 end
 
 bot.run

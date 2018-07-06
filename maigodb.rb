@@ -79,3 +79,9 @@ def get_reporters(server_id)
 							])
 	return response
 end
+
+def delete_raid(raid_id)
+	collection = CLIENT[:raid_reports]
+
+	response = collection.delete_one({'_id' => raid_id})
+end
