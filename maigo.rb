@@ -102,7 +102,7 @@ bot.command(:raid, min_args: 1, description: 'report a raid') do |event, *raid_i
 	parsed_raid_data = comma_parse(raid_info)
 	if parsed_raid_data.count != 3
 		error_msg = "Usage: ,raid <gym>,<minutes remaining>, <boss> (separated by commas)"
-		event.respond "<@" + event.user.id.to_s + "> " + error_msg
+		event.respond event.user.mention + ' ' + error_msg
 		return		
 	else
 		gym, minutes_left, boss = parsed_raid_data
@@ -149,7 +149,7 @@ bot.command(:egg, min_args: 1, description: 'report an egg') do |egg_event, *egg
 	parsed_egg_data = comma_parse(egg_info)
 	if parsed_egg_data.count < 2 || parsed_egg_data.count > 3
 		usage_msg = "Usage: ,egg <gym>,<minutes to hatch>, <tier> (separated by commas)"
-		egg_event.respond "<@" + egg_event.user.id.to_s + "> " + usage_msg
+		egg_event.respond egg_event.user.mention + ' ' + usage_msg
 		return
 	else
 		tier = parsed_egg_data.count == 2 ? 5 : parsed_egg_data[2]
@@ -161,7 +161,7 @@ bot.command(:egg, min_args: 1, description: 'report an egg') do |egg_event, *egg
   	hatch_data = get_active_range(time_string)
   	if !hatch_data
   		time_error_msg = 'Please enter minutes to hatch or a valid time (e.g. 12:23)'
-  		egg_event.respond "<@" + egg_event.user.id.to_s + "> " + time_error_msg
+  		egg_event.respond egg_event.user.mention + ' ' + time_error_msg
   		return
   	else
   		hatch_time, despawn_time = hatch_data
@@ -211,7 +211,7 @@ bot.command(:egg, min_args: 1, description: 'report an egg') do |egg_event, *egg
 		end
   	egg_event.message.react("✅")
 	else
-		egg_event.respond "<@" + egg_event.user.id.to_s + "> " + "please check the egg tier (1-5 allowed)"
+		egg_event.respond egg_event.user.mention + ' Please check the egg tier (1-5 allowed)'
 	end
 
 	return
