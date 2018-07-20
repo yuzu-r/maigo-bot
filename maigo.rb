@@ -2,6 +2,7 @@ require 'bundler/setup'
 require 'discordrb'
 require_relative 'maigodb'
 require_relative 'helpers'
+require_relative 'train'
 require 'chronic'
 require 'tzinfo'
 
@@ -12,6 +13,204 @@ bot = Discordrb::Commands::CommandBot.new token: ENV['DISCORD_TOKEN'],
 																					prefix: prefix
 
 usage_text = prefix  + 'whereis [gym name]'
+
+train = Train.new
+
+# this command should be runnable by anyone, in the raids channel (or other default)
+bot.command(:route) do |event|
+	if train.count > 0
+		event.respond "The train is on the move!\nPlanned stops: #{train.show}"
+	else
+		event.respond "The train has no planned destination right now. Help the train out by calling out eggs and raids that you see."
+	end
+end
+
+# future - the following commands should be reserved for the train conductors
+# executed in a locked channel or something
+# but the messages should broadcast to the raids (or other default) channel
+bot.command(:info) do |event|
+	event.respond "Anyone is welcome to meet or join the train at any time!"
+	if train.conductor
+		event.respond "Please mention #{train.conductor} if you plan to join so we know to look for you!"	
+	else
+		event.respond "Please comment in discord if you plan to join so we know to look for you!"
+	end
+end
+
+bot.command(:catch) do |event|
+	if train.count == 0
+		event.respond "There is nothing for the train to catch."
+	else
+		raid = train.first
+		new_route = train.next
+		event.respond "The train is catching at #{raid['gym']}.\n Next stops: #{new_route}"
+	end
+end
+
+bot.command(:stop) do |event|
+	event.respond train.stop
+end
+
+bot.command(:whois) do |event|
+	if train.conductor
+		event.respond "The train conductor is #{train.conductor}. Use `,conductor username` to change."
+	else
+		event.respond "There is no conductor right now. Use `,conductor username` to set one."
+	end
+end
+
+bot.command(:conductor) do |event, conductor|
+	train.conductor = conductor
+	if train.conductor
+		event.respond "You made #{conductor} the point of contact for the train."
+	else
+		event.respond "There is no conductor right now."
+	end
+end
+
+bot.command(:toggleboss) do |event|
+	boss_text = train.toggle_boss ? "will" : "will not"
+	event.respond "The boss #{boss_text} show in the route information."
+end
+
+bot.command(:set) do |event, *raid_id|
+	raids = find_active_raids(event.server.id.to_s)
+	if !raids || raids.count == 0
+		no_message = bot.send_message(event.channel.id, 'There are no raids to for the train to battle. Pfui.')
+		event.message.delete
+		sleep 3
+		no_message.delete
+	else
+		raid_id = 1
+		route_text = "Enter the raid numbers in order the train will visit them, or 0 to cancel.\n--\n0) **Cancel route creation**"
+		raids.each do |raid|
+	  	if raid['tier']
+				route_text += "\n#{raid_id.to_s}) #{raid['tier']}* (#{raid['hatch_time'].strftime("%-I:%M")} to **#{raid['despawn_time'].strftime("%-I:%M")}**) @ #{raid['gym']}"
+			else
+				route_text += "\n#{raid_id.to_s}) #{raid['boss'].capitalize} (**#{raid['despawn_time'].strftime("%-I:%M")}**) @ #{raid['gym']} "
+			end
+			raid_id += 1
+		end
+		route_text += "\n\nCurrent route: #{train.show}"
+		initial_message = event.respond route_text
+		response = event.message.await!(timeout: 30, user: event.user)
+		if response 
+			target_raid = response.content.to_i
+			if target_raid == 0
+				cancel_message = event.respond "Routing cancelled - no changes made. Cleaning up and bugging out!"
+				initial_message.delete
+				response.message.delete
+				event.message.delete
+				sleep 3
+				cancel_message.delete
+			else
+				train.set(response.content, raids)
+			end
+		else
+			timeout_message = event.respond "Timeout - no additions will be made to the route."
+			initial_message.delete
+			event.message.delete
+			sleep 3
+			timeout_message.delete
+		end
+	end
+end
+
+bot.command(:skip) do |event, position|
+	# position is optional
+	if /\d/ === position
+		event.respond train.skip(position.to_i)
+	else
+		# interactively determine which raid to remove
+		event.respond "You want to skip a stop on the route. Which one?"
+		event.respond "0) **Cancel skip entry**"
+		event.respond train.list
+		response = event.message.await!(timeout: 20, user: event.user)
+		if response 
+			raid_index = response.content.to_i
+			if raid_index == 0
+				cancel_message = event.respond "Skip cancelled - no changes made. Cleaning up and bugging out!"
+				sleep 3
+				event.message.delete
+				response.message.delete
+				cancel_message.delete
+			else
+				event.respond train.skip(raid_index)
+			end
+		else
+			timeout_message = event.respond "Timeout - skip cancelled."
+			sleep 3
+			event.message.delete
+			timeout_message.delete			
+			return
+		end
+	end
+end
+
+bot.command(:data) do |event|
+	# creates 7 semi-random egg/raid events
+	insert_test(event.server)
+	sort_and_pin(event, bot)
+end
+
+bot.command(:insert) do |event|
+	raids = find_active_raids(event.server.id.to_s)
+	if !raids || raids.count == 0
+		no_message = bot.send_message(event.channel.id, 'There are no raids to insert. Bah.')
+		event.message.delete
+		sleep 3
+		no_message.delete
+	else
+		raid_id = 1
+		route_text = "Enter the raid number you wish to insert into the route, or 0 to cancel.\n--\n0) **Cancel route insert**"
+		raids.each do |raid|
+	  	if raid['tier']
+				route_text += "\n#{raid_id.to_s}) #{raid['tier']}* (#{raid['hatch_time'].strftime("%-I:%M")} to **#{raid['despawn_time'].strftime("%-I:%M")}**) @ #{raid['gym']}"
+			else
+				route_text += "\n#{raid_id.to_s}) #{raid['boss'].capitalize} (**#{raid['despawn_time'].strftime("%-I:%M")}**) @ #{raid['gym']} "
+			end
+			raid_id += 1
+		end
+		route_text += "\n\nCurrent route: #{train.show}"
+		initial_message = event.respond route_text
+		response = event.message.await!(timeout: 25, user: event.user)
+		if response 
+			target_raid = response.content.to_i
+			if target_raid == 0
+				cancel_message = event.respond "Insert cancelled - no changes made. Cleaning up and bugging out!"
+				initial_message.delete
+				response.message.delete
+				event.message.delete
+				sleep 3
+				cancel_message.delete
+			else
+				event.respond "You want to insert #{raids[target_raid-1]['gym']} (**#{raids[target_raid-1]['despawn_time'].strftime("%-I:%M")}**) into the existing route."
+				event.respond "This raid should come BEFORE:"
+				event.respond "0) **Cancel route insert**"
+				event.respond train.list
+				event.respond "#{train.count + 1} ) **Add to end of current route**"
+				insert_response = event.message.await!(timeout: 20, user: event.user)
+				if insert_response
+					insert_before = insert_response.content.to_i
+					if insert_before == 0
+						event.respond "Insert cancelled - no changes made."
+					else
+						new_route = train.insert(insert_before, raids[target_raid-1]['_id'])
+						event.respond "The route is now #{new_route}."
+					end
+				else
+					timeout_message = event.respond "Timeout - insert cancelled."
+				end
+			end
+		else
+			timeout_message = event.respond "Timeout - insert cancelled."
+			initial_message.delete
+			event.message.delete
+			sleep 3
+			timeout_message.delete
+		end
+	end
+end
 
 bot.command(:whereis, min_args: 1, description: 'find a PoGo gym', usage: usage_text) do |event, *gym| 
 	username = event.user.display_name
@@ -293,7 +492,7 @@ bot.command(:rm) do |event|
 			raid_id += 1
 		end
 		initial_message = event.respond delete_text
-		response = event.message.await!(timeout: 5, user: event.user)
+		response = event.message.await!(timeout: 10, user: event.user)
 		if response 
 			target_raid = response.content.to_i
 			if target_raid == 0
