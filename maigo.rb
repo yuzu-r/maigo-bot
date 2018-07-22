@@ -5,17 +5,38 @@ require_relative 'helpers'
 require_relative 'train'
 require 'chronic'
 require 'tzinfo'
+require 'rufus-scheduler'
+
 
 prefix = ENV['DISCORD_PREFIX']
+clean_interval = ENV['CLEAN_INTERVAL'].to_s + 'm'
+puts "Egg/raid cleanup interval: #{clean_interval}"
+
+usage_text = prefix  + 'whereis [gym name]'
+
+scheduler = Rufus::Scheduler.new
 
 bot = Discordrb::Commands::CommandBot.new token: ENV['DISCORD_TOKEN'], 
 																					client_id: ENV['DISCORD_CLIENT_ID'], 
 																					prefix: prefix
 
-usage_text = prefix  + 'whereis [gym name]'
+bot.ready do |event|
+	bot.servers.each do |server_id, server|
+		raids_channel = get_raids_channel(server)
+		if raids_channel
+			scheduler.interval(clean_interval) do
+				silent_update(server, bot)
+			end			
+		end
+	end
+end
+
+bot.command(:time) do |event, mins|
+	tz = TZInfo::Timezone.get('America/Los_Angeles')
+	event.respond "#{mins} minutes from now is #{tz.utc_to_local(Time.now + mins.to_i*60).strftime("%-I:%M")}"
+end
 
 train = Train.new
-
 # this command should be runnable by anyone, in the raids channel (or other default)
 bot.command(:route) do |event|
 	if train.count > 0
@@ -150,7 +171,8 @@ end
 bot.command(:data) do |event|
 	# creates 7 semi-random egg/raid events
 	insert_test(event.server)
-	sort_and_pin(event, bot)
+	silent_update(event.server, bot)
+	event.message.react("✅")
 end
 
 bot.command(:insert) do |event|
@@ -295,7 +317,7 @@ bot.command(:exgyms, description: 'list gyms that are eligible to have ex raids'
 end
 
 bot.command(:raid, min_args: 1, description: 'report a raid') do |event, *raid_info|
-	raid_channel = get_raids_channel(event.server) || bot.channel
+	raid_channel = get_raids_channel(event.server)
 	username = event.user.display_name
 
 	parsed_raid_data = comma_parse(raid_info)
@@ -326,19 +348,7 @@ bot.command(:raid, min_args: 1, description: 'report a raid') do |event, *raid_i
 	embed.color = 15236612
 	embed.description = "Gym: #{gym_info} (reported by #{username})"
 	bot.send_message(raid_channel.id, '',false, embed)
-
-	# look for a pinned message from the bot
-	bot_pin = get_bot_pin(raid_channel, bot.profile.id)
-	if bot_pin
-		# edit the message already in pinned
-		active_raids_msg = bot_pin.content + "\n#{boss.capitalize} (**#{despawn_time.strftime("%-I:%M")}**) @ #{gym}"
-		bot_pin.edit(active_raids_msg)
-	else
-		# create a new pinned message by the bot
-		active_raids_msg = "**Active and Pending Raids** \n#{boss.capitalize} (**#{despawn_time.strftime("%-I:%M")}**) @ #{gym}"
-		bot_pin = bot.send_message(raid_channel.id, active_raids_msg)
-		bot_pin.pin
-	end
+	silent_update(event.server, bot)
 	event.message.react("✅")
 	return
 end
@@ -365,7 +375,7 @@ bot.command(:egg, min_args: 1, description: 'report an egg') do |egg_event, *egg
   	else
   		hatch_time, despawn_time = hatch_data
   	end
-  	egg_channel = get_raids_channel(egg_event.server) || bot.channel
+  	egg_channel = get_raids_channel(egg_event.server)
 		username = egg_event.user.display_name
 
   	# match color to tier
@@ -395,25 +405,40 @@ bot.command(:egg, min_args: 1, description: 'report an egg') do |egg_event, *egg
   	embed.color = color
   	embed.description = "Gym: #{gym_info} (reported by #{username})"
   	bot.send_message(egg_channel.id, '',false, embed)
-
-		# look for a pinned message from the bot
-		bot_pin = get_bot_pin(egg_channel, bot.profile.id)
-		if bot_pin
-			# edit the message already in pinned
-			active_raids_msg = bot_pin.content + "\n#{tier}* (#{hatch_time.strftime("%-I:%M")} to **#{despawn_time.strftime("%-I:%M")}**) @ #{gym}"
-			bot_pin.edit(active_raids_msg)
-		else
-			# create a new pinned message by the bot
-			active_raids_msg = "**Active and Pending Raids** \n#{tier}* (#{hatch_time.strftime("%-I:%M")} to **#{despawn_time.strftime("%-I:%M")}**) @ #{gym}"
-			bot_pin = bot.send_message(egg_channel.id, active_raids_msg)
-			bot_pin.pin
-		end
+		silent_update(egg_event.server, bot)
   	egg_event.message.react("✅")
 	else
 		egg_event.respond egg_event.user.mention + ' Please check the egg tier (1-5 allowed)'
 	end
 
 	return
+end
+
+def silent_update(server, bot) # should this also accept a channel?
+	active_raids = find_active_raids(server.id.to_s)	
+	raid_message = "**Active and Pending Raids**"
+	if !active_raids || active_raids.count == 0
+	else
+	  active_raids.each do |raid|
+	  	# prepare an egg message or a raid message
+	  	if raid['tier']
+				raid_message += "\n#{raid['tier']}* (#{raid['hatch_time'].strftime("%-I:%M")} to **#{raid['despawn_time'].strftime("%-I:%M")}**) @ #{raid['gym']}"
+			else
+				raid_message += "\n#{raid['boss'].capitalize} (**#{raid['despawn_time'].strftime("%-I:%M")}**) @ #{raid['gym']} "
+			end
+		end
+	end
+	# update the pinned message
+	raid_channel = get_raids_channel(server)
+	bot_pin = get_bot_pin(raid_channel, bot.profile.id)
+	if bot_pin
+		# edit the message already in pinned
+		bot_pin.edit(raid_message)
+	else
+		# create a new pinned message by the bot
+		bot_pin = bot.send_message(raid_channel.id, raid_message)
+		bot_pin.pin
+	end
 end
 
 def sort_and_pin(event, bot)
@@ -433,7 +458,7 @@ def sort_and_pin(event, bot)
 		event.respond raid_message
 	end
 	# update the pinned message
-	raid_channel = get_raids_channel(event.server) || bot.channel
+	raid_channel = get_raids_channel(event.server)
 	bot_pin = get_bot_pin(raid_channel, bot.profile.id)
 	if bot_pin
 		# edit the message already in pinned
@@ -518,7 +543,8 @@ bot.command(:rm) do |event|
 					initial_message.delete
 					response.message.delete
 					event.message.delete
-					sort_and_pin(event, bot)
+					#sort_and_pin(event, bot)
+					silent_update(event.server, bot)
 					sleep 3
 					raid_delete_message.delete
 				end
