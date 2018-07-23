@@ -20,21 +20,13 @@ module Bot::DiscordCommands
 				end
 				# suppress the map preview for brevity
 				google_maps = message['gmap'] ? '<' + message['gmap'] + '>' : nil
-				if Bot::LOGGING == 'true'
-					response = log(_event.server.id, _event.user.id, 'whereis', search_term, true)
-					if !response || response.n != 1
-						puts "could not log whereis to database, successful search for #{search_term}"
-					end
-				end
+				fallback_msg = "Could not log successful search for #{search_term} to database!"
+				log_command(_event, 'whereis', true, fallback_msg, search_term)
 				_event << google_maps
 			else
 				# either multiple gyms returned, or no gyms found
-				if Bot::LOGGING == 'true'
-					response = log(_event.server.id, _event.user.id, 'whereis', search_term, false)
-			 		if !response || response.n != 1
-			 			puts "could not log whereis to database, unsuccessful search for #{search_term}"
-					end
-				end
+				fallback_msg = "Could not log unsuccessful search for #{search_term} to database!"
+				log_command(_event, 'whereis', false, fallback_msg, search_term)				
 				message
 			end
     end

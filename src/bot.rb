@@ -2,6 +2,7 @@
 require 'discordrb'
 require 'bundler/setup'
 require_relative 'lib/maigodb'
+require_relative 'lib/helpers'
 
 # The main bot module.
 module Bot

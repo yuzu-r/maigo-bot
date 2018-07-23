@@ -26,12 +26,8 @@ module Bot::DiscordCommands
 				foot = Discordrb::Webhooks::EmbedFooter.new(text:"Click the gym name for google map.")
 				embed.footer = foot
 				_event.bot.send_message(_event.channel.id, '',false, embed)
-				if Bot::LOGGING == 'true'
-					response = log(_event.server.id, _event.user.id, 'exgyms', nil, true)
-					if !response || response.n != 1
-						puts "could not log exgyms command to database"
-					end
-				end
+				fallback_msg = "Could not log exgyms command to database!"
+				log_command(_event, 'exgyms', true, fallback_msg)				
 			end
 			return
     end
