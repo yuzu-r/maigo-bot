@@ -1,1 +1,1 @@
-worker: ruby maigo.rb
+worker: ruby src/bot.rb

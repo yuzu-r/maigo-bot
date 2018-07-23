@@ -1,12 +1,10 @@
-def get_emoji_mention(emoji_name, server_emojis)
-	emoji_mention = ''
-	server_emojis.each do |key, e|
-	  if e.name == emoji_name
-	  	emoji_mention = e.mention
-	  	break
-	  end
+def log_command(_event, command, is_success, fallback_msg, param = nil)
+	return if !Bot::LOGGING || Bot::LOGGING == 'false'
+	response = log(_event.server.id, _event.user.id, command, param, is_success)
+	if !response || response.n != 1
+		puts fallback_msg
 	end
-	return emoji_mention
+	return
 end
 
 def get_raids_channel(server)
@@ -100,4 +98,60 @@ end
 
 def param_check(command_line, num_required_params)
 	command_line.scan(/(?=,)/).count == num_required_params ? true : false
+end
+
+def silent_update(server, bot) # should this also accept a channel?
+	active_raids = find_active_raids(server.id.to_s)	
+	raid_message = "**Active and Pending Raids**"
+	if !active_raids || active_raids.count == 0
+	else
+	  active_raids.each do |raid|
+	  	# prepare an egg message or a raid message
+	  	if raid['tier']
+				raid_message += "\n#{raid['tier']}* (#{raid['hatch_time'].strftime("%-I:%M")} to **#{raid['despawn_time'].strftime("%-I:%M")}**) @ #{raid['gym']}"
+			else
+				raid_message += "\n#{raid['boss'].capitalize} (**#{raid['despawn_time'].strftime("%-I:%M")}**) @ #{raid['gym']} "
+			end
+		end
+	end
+	# update the pinned message
+	raid_channel = get_raids_channel(server)
+	bot_pin = get_bot_pin(raid_channel, bot.profile.id)
+	if bot_pin
+		# edit the message already in pinned
+		bot_pin.edit(raid_message)
+	else
+		# create a new pinned message by the bot
+		bot_pin = bot.send_message(raid_channel.id, raid_message)
+		bot_pin.pin
+	end
+end
+
+def sort_and_pin(event, bot)
+	active_raids = find_active_raids(event.server.id.to_s)	
+	raid_message = "**Active and Pending Raids**"
+	if !active_raids || active_raids.count == 0 
+		event.respond "There are no active raids or pending eggs at this time. Rats."
+	else
+	  active_raids.each do |raid|
+	  	# prepare an egg message or a raid message
+	  	if raid['tier']
+				raid_message += "\n#{raid['tier']}* (#{raid['hatch_time'].strftime("%-I:%M")} to **#{raid['despawn_time'].strftime("%-I:%M")}**) @ #{raid['gym']}"
+			else
+				raid_message += "\n#{raid['boss'].capitalize} (**#{raid['despawn_time'].strftime("%-I:%M")}**) @ #{raid['gym']} "
+			end
+		end
+		event.respond raid_message
+	end
+	# update the pinned message
+	raid_channel = get_raids_channel(event.server)
+	bot_pin = get_bot_pin(raid_channel, bot.profile.id)
+	if bot_pin
+		# edit the message already in pinned
+		bot_pin.edit(raid_message)
+	else
+		# create a new pinned message by the bot
+		bot_pin = bot.send_message(raid_channel.id, raid_message)
+		bot_pin.pin
+	end
 end
