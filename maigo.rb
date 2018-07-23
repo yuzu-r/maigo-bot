@@ -36,7 +36,7 @@ bot.command(:time) do |event, mins|
 	event.respond "#{mins} minutes from now is #{tz.utc_to_local(Time.now + mins.to_i*60).strftime("%-I:%M")}"
 end
 
-train = Train.new
+train = Train.new # PROBLEM here: this train is across servers!!
 # this command should be runnable by anyone, in the raids channel (or other default)
 bot.command(:route) do |event|
 	if train.count > 0
