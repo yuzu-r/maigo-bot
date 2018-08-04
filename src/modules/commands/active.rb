@@ -1,8 +1,8 @@
 module Bot::DiscordCommands
-  module Update
+  module Active
     extend Discordrb::Commands::CommandContainer
-    command :update do |_event|
-			sort_and_pin(event, bot)
+    command :active do |_event|
+			sort_and_pin(_event)
 			return    	
     end
   end

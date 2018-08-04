@@ -1,7 +1,7 @@
 module Bot::DiscordCommands
   module Raid
     extend Discordrb::Commands::CommandContainer
-    command :raid(:raid, min_args: 1, description: 'report a raid') do |_event, *raid_info|
+    command(:raid, min_args: 1, description: 'report a raid') do |_event, *raid_info|
 			raid_channel = get_raids_channel(_event.server)
 			username = _event.user.display_name
 
@@ -12,6 +12,12 @@ module Bot::DiscordCommands
 				return		
 			else
 				gym, minutes_left, boss = parsed_raid_data
+				time_ok = minutes_left =~ /\D/
+				if !time_ok.nil? # do not accept : or anything other than digits for raids
+					error_msg = "The raid command only accepts minutes remaining (do not include seconds)"
+					_event.respond _event.user.mention + ' ' + error_msg
+					return
+				end
 			end
 
 			tz = TZInfo::Timezone.get('America/Los_Angeles')

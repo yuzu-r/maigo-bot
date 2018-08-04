@@ -3,7 +3,6 @@ require 'discordrb'
 require 'bundler/setup'
 require_relative 'lib/maigodb'
 require_relative 'lib/helpers'
-require_relative 'classes/train'
 require 'chronic'
 require 'tzinfo'
 require 'rufus-scheduler'
@@ -14,12 +13,11 @@ module Bot
   Dir['src/modules/*.rb'].each { |mod| load mod }
 
   # Bot configuration
-  PREFIX = ENV['DISCORD_PREFIX']
-  LOGGING = ENV['LOGGING'].to_s
   client_id = ENV['DISCORD_CLIENT_ID']
   token = ENV['DISCORD_TOKEN']
-  clean_interval = ENV['CLEAN_INTERVAL'].to_s + 'm'
-  puts "Egg/raid cleanup interval: #{clean_interval}"
+  PREFIX = ENV['DISCORD_PREFIX']
+  LOGGING = ENV['LOGGING'].to_s  
+  CLEAN_INTERVAL = ENV['CLEAN_INTERVAL']
 
   # This structure is adapted from Gemstone: https://github.com/z64/gemstone
   # Create the bot.
@@ -29,7 +27,7 @@ module Bot
                                             token: token,
                                             prefix: PREFIX)
 
-  scheduler = Rufus::Scheduler.new
+  Scheduler = Rufus::Scheduler.new
 
   # This class method wraps the module lazy-loading process of discordrb command
   # and event modules. Any module name passed to this method will have its child

@@ -100,7 +100,7 @@ def param_check(command_line, num_required_params)
 	command_line.scan(/(?=,)/).count == num_required_params ? true : false
 end
 
-def silent_update(server, bot) # should this also accept a channel?
+def silent_update(server, bot)
 	active_raids = find_active_raids(server.id.to_s)	
 	raid_message = "**Active and Pending Raids**"
 	if !active_raids || active_raids.count == 0
@@ -116,18 +116,20 @@ def silent_update(server, bot) # should this also accept a channel?
 	end
 	# update the pinned message
 	raid_channel = get_raids_channel(server)
-	bot_pin = get_bot_pin(raid_channel, bot.profile.id)
-	if bot_pin
-		# edit the message already in pinned
-		bot_pin.edit(raid_message)
-	else
-		# create a new pinned message by the bot
-		bot_pin = bot.send_message(raid_channel.id, raid_message)
-		bot_pin.pin
+	if raid_channel
+		bot_pin = get_bot_pin(raid_channel, bot.profile.id)
+		if bot_pin
+			# edit the message already in pinned
+			bot_pin.edit(raid_message)
+		else
+			# create a new pinned message by the bot
+			bot_pin = bot.send_message(raid_channel.id, raid_message)
+			bot_pin.pin
+		end
 	end
 end
 
-def sort_and_pin(event, bot)
+def sort_and_pin(event)
 	active_raids = find_active_raids(event.server.id.to_s)	
 	raid_message = "**Active and Pending Raids**"
 	if !active_raids || active_raids.count == 0 
@@ -144,14 +146,14 @@ def sort_and_pin(event, bot)
 		event.respond raid_message
 	end
 	# update the pinned message
-	raid_channel = get_raids_channel(event.server)
-	bot_pin = get_bot_pin(raid_channel, bot.profile.id)
+	raid_channel = get_raids_channel(event.server) || event.channel
+	bot_pin = get_bot_pin(raid_channel, event.bot.profile.id)
 	if bot_pin
 		# edit the message already in pinned
 		bot_pin.edit(raid_message)
 	else
 		# create a new pinned message by the bot
-		bot_pin = bot.send_message(raid_channel.id, raid_message)
+		bot_pin = event.bot.send_message(raid_channel.id, raid_message)
 		bot_pin.pin
 	end
 end

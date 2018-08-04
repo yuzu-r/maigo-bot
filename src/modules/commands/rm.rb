@@ -1,5 +1,5 @@
 module Bot::DiscordCommands
-  module rm
+  module Rm
     extend Discordrb::Commands::CommandContainer
     command :rm do |_event|
 			raids = find_active_raids(_event.server.id.to_s)
