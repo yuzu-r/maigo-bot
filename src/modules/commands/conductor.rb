@@ -2,6 +2,7 @@ module Bot::DiscordCommands
   module Conductor
     extend Discordrb::Commands::CommandContainer
     command :conductor do |_event, conductor|
+    	train = Bot::Trains[_event.server.id]
 			train.conductor = conductor
 			if train.conductor
 				_event.respond "You made #{conductor} the point of contact for the train."

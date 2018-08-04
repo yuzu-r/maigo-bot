@@ -3,6 +3,7 @@ require 'discordrb'
 require 'bundler/setup'
 require_relative 'lib/maigodb'
 require_relative 'lib/helpers'
+require_relative 'classes/train'
 require 'chronic'
 require 'tzinfo'
 require 'rufus-scheduler'
@@ -28,6 +29,7 @@ module Bot
                                             prefix: PREFIX)
 
   Scheduler = Rufus::Scheduler.new
+  Trains = Hash.new
 
   # This class method wraps the module lazy-loading process of discordrb command
   # and event modules. Any module name passed to this method will have its child

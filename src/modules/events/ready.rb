@@ -3,6 +3,9 @@ module Bot::DiscordEvents
   module Ready
     extend Discordrb::EventContainer
     ready do |_event|
+    	_event.bot.servers.each do |server_id, server|
+    		Bot::Trains[server_id] = Train.new
+    	end
 			tz = TZInfo::Timezone.get('America/Los_Angeles')
 			cron_string = "*/" + Bot::CLEAN_INTERVAL.to_s + " 13-23,0-2 * * *"
 			#Bot::Scheduler.cron '*/15 13-23,0-2 * * *' do

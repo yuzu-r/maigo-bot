@@ -2,6 +2,7 @@ module Bot::DiscordCommands
   module Catch
     extend Discordrb::Commands::CommandContainer
     command :catch do |_event|
+    	train = Bot::Trains[_event.server.id]
 			if train.count == 0
 				_event.respond "There is nothing for the train to catch."
 			else

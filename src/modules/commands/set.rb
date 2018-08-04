@@ -2,6 +2,7 @@ module Bot::DiscordCommands
   module Set
     extend Discordrb::Commands::CommandContainer
     command :set do |_event, *raid_id|
+    	train = Bot::Trains[_event.server.id]
 			raids = find_active_raids(_event.server.id.to_s)
 			if !raids || raids.count == 0
 				no_message = _event.bot.send_message(_event.channel.id, 'There are no raids to for the train to battle. Pfui.')

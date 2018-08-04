@@ -3,10 +3,12 @@ module Bot::DiscordCommands
     extend Discordrb::Commands::CommandContainer
     command :skip do |_event, position|
 			# position is optional
+			train = Bot::Trains[_event.server.id]			
 			if /\d/ === position
 				_event.respond train.skip(position.to_i)
 			else
 				# interactively determine which raid to remove
+				# this needs to be cleaned up more thoroughly after command runs
 				_event.respond "You want to skip a stop on the route. Which one?"
 				_event.respond "0) **Cancel skip entry**"
 				_event.respond train.list

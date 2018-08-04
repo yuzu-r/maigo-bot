@@ -69,7 +69,7 @@ class Train
 				@route.push raid
 			end
 		end
-		return "The route is now #{self.show}."
+		return "The route is now #{self.show}"
 	end
 
 	def stop

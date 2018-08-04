@@ -9,6 +9,7 @@ module Bot::DiscordCommands
 				sleep 3
 				no_message.delete
 			else
+				train = Bot::Trains[_event.server.id]
 				raid_id = 1
 				route_text = "Enter the raid number you wish to insert into the route, or 0 to cancel.\n--\n0) **Cancel route insert**"
 				raids.each do |raid|
@@ -37,7 +38,7 @@ module Bot::DiscordCommands
 						_event.respond "0) **Cancel route insert**"
 						_event.respond train.list
 						_event.respond "#{train.count + 1} ) **Add to end of current route**"
-						insert_response = event.message.await!(timeout: 20, user: _event.user)
+						insert_response = _event.message.await!(timeout: 20, user: _event.user)
 						if insert_response
 							insert_before = insert_response.content.to_i
 							if insert_before == 0
