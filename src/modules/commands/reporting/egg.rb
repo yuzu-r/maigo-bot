@@ -1,4 +1,4 @@
-module Bot::DiscordCommands
+module Bot::ReportingCommands
   module Egg
     extend Discordrb::Commands::CommandContainer
     command(:egg, min_args: 1, description: 'report an egg') do |_event, *egg_info|
@@ -66,5 +66,17 @@ module Bot::DiscordCommands
 			fallback_msg = "Could not log egg command to database!"
 			log_command(_event, 'egg', is_success, fallback_msg)
     end
+  	egg_text = "\n**Egg Reporting**"
+  	egg_text += "\n`#{Bot::PREFIX}egg [gym], [minutes to hatch OR hatch time], [optional tier]`"
+  	egg_text += "\n if no tier (1-5) is included, the egg is assumed to be tier 5."
+  	egg_text += "\n**Examples:**"
+  	egg_text += "\nTo report a 5:star: egg hatching at 10:14 at jw:"
+  	egg_text += "\n`#{Bot::PREFIX}egg jw, 10:14`"
+  	egg_text += "\nTo report a 2:star: egg hatching in 8 minutes at long song:"
+		egg_text += "\n`#{Bot::PREFIX}egg long song, 8, 2`"
+  	egg_text += "\nAll pending eggs can be viewed in a pinned message in the Raids channel."
+  	egg_text += "\nThere is no edit function; use `raid` to report the raid boss when egg hatches or `rm` to remove a mis-reported egg."
+  	egg_text += "\nIf the gym name can be resolved by the gym finder, a link to gmap will be included in the egg announcement."
+    Bot::CommandCategories['reporting'].push :egg => egg_text    
   end
 end

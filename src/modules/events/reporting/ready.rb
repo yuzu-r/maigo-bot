@@ -1,4 +1,4 @@
-module Bot::DiscordEvents
+module Bot::ReportingEvents
   # This event is processed each time the bot succesfully connects to discord.
   module Ready
     extend Discordrb::EventContainer

@@ -1,16 +1,11 @@
-module Bot::DiscordCommands
+module Bot::HelpCommands
   module Help
     extend Discordrb::Commands::CommandContainer
-    command :help do |_event|
-    	gym_finder_text = "**Gym Finder**"
-    	gym_finder_text += "\nType `#{Bot::PREFIX}whereis` and a gym name or nickname to look up its location. "
-    	gym_finder_text += "\nTry `#{Bot::PREFIX}whereis happy donuts` to see it in action. "
-    	gym_finder_text += "\nIt is not case sensitive. In most cases, it can guess an incomplete name, but not typo-ed names. "
-    	gym_finder_text += "In other words, `#{Bot::PREFIX}whereis donut` will work, but `#{Bot::PREFIX}whereis hapy donts` will not. "
-    	gym_finder_text += "If the entered name isn\'t unique, maigo-helper will return a list of suggestions to narrow down your search."
-    	gym_finder_text += "\nType `#{Bot::PREFIX}exgyms` to see a listing of El Cerrito/Albany gyms known to hold ex raids."
-    	_event.send_message(gym_finder_text)
-
+      command :help do |_event|
+    end
+  end
+end
+=begin
 		  _event << "\n**Raid Reporting**"
 		  _event << "`#{Bot::PREFIX}active` returns a list of active and pending raids, sorted by despawn time."
 		  _event << "`#{Bot::PREFIX}egg [gym], [hatch time OR minutes to hatch], [optional tier; default is 5]`"
@@ -23,8 +18,11 @@ module Bot::DiscordCommands
 		  _event << "\n**Misc and Experimental Commands**"
 		  _event << "`#{Bot::PREFIX}leaderboard` returns a list of most active egg/raid reporters."
 		  _event << "`#{Bot::PREFIX}whenis [minutes]` calculates what time it is `minutes` from now."
+
 			fallback_msg = "Could not log help command to database!"
 			log_command(_event, 'help', true, fallback_msg)
+
     end
   end
+=end
 end

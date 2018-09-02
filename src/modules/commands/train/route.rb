@@ -1,4 +1,4 @@
-module Bot::DiscordCommands
+module Bot::TrainCommands
   module Route
     extend Discordrb::Commands::CommandContainer
     command :route do |_event|

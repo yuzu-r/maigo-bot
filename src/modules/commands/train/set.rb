@@ -1,4 +1,4 @@
-module Bot::DiscordCommands
+module Bot::TrainCommands
   module Set
     extend Discordrb::Commands::CommandContainer
     command :set do |_event, *raid_id|

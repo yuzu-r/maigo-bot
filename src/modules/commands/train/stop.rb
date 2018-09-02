@@ -1,4 +1,4 @@
-module Bot::DiscordCommands
+module Bot::TrainCommands
   module Stop
     extend Discordrb::Commands::CommandContainer
     command :stop do |_event|

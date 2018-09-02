@@ -1,4 +1,4 @@
-module Bot::DiscordCommands
+module Bot::TrainCommands
   module Skip
     extend Discordrb::Commands::CommandContainer
     command :skip do |_event, position|

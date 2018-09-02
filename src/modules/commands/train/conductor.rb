@@ -1,4 +1,4 @@
-module Bot::DiscordCommands
+module Bot::TrainCommands
   module Conductor
     extend Discordrb::Commands::CommandContainer
     command :conductor do |_event, conductor|

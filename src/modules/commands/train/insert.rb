@@ -1,4 +1,4 @@
-module Bot::DiscordCommands
+module Bot::TrainCommands
   module Insert
     extend Discordrb::Commands::CommandContainer
     command :insert do |_event|

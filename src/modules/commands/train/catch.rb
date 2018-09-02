@@ -1,4 +1,4 @@
-module Bot::DiscordCommands
+module Bot::TrainCommands
   module Catch
     extend Discordrb::Commands::CommandContainer
     command :catch do |_event|

@@ -1,4 +1,4 @@
-module Bot::DiscordCommands
+module Bot::TrainCommands
   module Whois
     extend Discordrb::Commands::CommandContainer
     command :whois do |_event|

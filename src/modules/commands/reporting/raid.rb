@@ -1,4 +1,4 @@
-module Bot::DiscordCommands
+module Bot::ReportingCommands
   module Raid
     extend Discordrb::Commands::CommandContainer
     command(:raid, min_args: 1, description: 'report a raid') do |_event, *raid_info|
@@ -47,5 +47,12 @@ module Bot::DiscordCommands
 			log_command(_event, 'raid', is_success, fallback_msg)
 			return
     end
+  	raid_text = "\n**Raid Reporting**"
+  	raid_text += "\n`#{Bot::PREFIX}raid [gym], [minutes remaining to despawn], [boss]`"
+  	raid_text += "\nTo report a kyogre raid with 42 minutes remaining at frog habitat:"
+  	raid_text += "\n`#{Bot::PREFIX}raid frog, 42, kyogre`"
+  	raid_text += "\nAll active raids can be viewed in a pinned message in the Raids channel."
+  	raid_text += "\nIf the gym name can be resolved by the gym finder, a link to gmap will be included in the raid announcement."
+    Bot::CommandCategories['reporting'].push :raid => raid_text
   end
 end

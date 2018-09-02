@@ -1,4 +1,4 @@
-module Bot::DiscordCommands
+module Bot::ReportingCommands
   module Leaderboard
     extend Discordrb::Commands::CommandContainer
     command(:leaderboard, description: 'raid/egg reporter leaderboard') do |_event|
@@ -23,5 +23,9 @@ module Bot::DiscordCommands
 			_event.bot.send_message(_event.channel.id,'',false, embed)
 			return
     end
+    leaderboard_text = "\n**Leaderboard Command**"
+    leaderboard_text += "\n`#{Bot::PREFIX}leaderboard`"
+  	leaderboard_text += "\nThis experimental command will display information about who reports the most raids/eggs."
+    Bot::CommandCategories['reporting'].push :leaderboard => leaderboard_text        
   end
 end

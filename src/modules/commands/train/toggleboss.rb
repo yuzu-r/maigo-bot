@@ -1,4 +1,4 @@
-module Bot::DiscordCommands
+module Bot::TrainCommands
   module Toggleboss
     extend Discordrb::Commands::CommandContainer
     command :toggleboss do |_event|
