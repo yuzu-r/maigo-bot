@@ -8,7 +8,7 @@ module Bot::StaticText
     Bot::CommandCategories['misc'] = []
     Bot::CommandCategories['help'] = []
 
-    lookup_text = "**Gym Finder Commands**"
+    lookup_text = "**Gym Lookup Commands**"
     lookup_text += "\nUse `#{Bot::PREFIX}whereis` to locate gyms local to El Cerrito/Albany. "
     lookup_text += "\nUse `#{Bot::PREFIX}exgyms` to locate confirmed ex raid locations in the El Cerrito-Albany area. "
     lookup_text += "\nSome nearby gyms from Berkeley/Kensington/Richmond are included but this bot does not provide "
