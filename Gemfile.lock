@@ -1,19 +1,31 @@
-GEM
-  remote: https://rubygems.org/
+GIT
+  remote: https://github.com/meew0/discordrb.git
+  revision: 276e2afd5f16bde804d0794d57cfdfe4c6041180
   specs:
-    bson (4.2.2)
     discordrb (3.2.1)
       discordrb-webhooks (~> 3.2.0.1)
       opus-ruby
       rbnacl (~> 3.4.0)
-      rest-client
+      rest-client (>= 2.1.0.rc1)
       websocket-client-simple (>= 0.3.0)
     discordrb-webhooks (3.2.0.1)
-      rest-client
-    domain_name (0.5.20170404)
+      rest-client (>= 2.1.0.rc1)
+
+GEM
+  remote: https://rubygems.org/
+  specs:
+    bson (4.3.0)
+    chronic (0.10.2)
+    domain_name (0.5.20180417)
       unf (>= 0.0.5, < 1.0.0)
+    et-orbi (1.1.3)
+      tzinfo
     event_emitter (0.2.6)
-    ffi (1.9.18)
+    ffi (1.9.25)
+    fugit (1.1.4)
+      et-orbi (~> 1.1, >= 1.1.3)
+      raabro (~> 1.1)
+    http-accept (1.7.0)
     http-cookie (1.0.3)
       domain_name (~> 0.5)
     mime-types (3.1)
@@ -24,16 +36,23 @@ GEM
     netrc (0.11.0)
     opus-ruby (1.0.1)
       ffi
+    raabro (1.1.6)
     rbnacl (3.4.0)
       ffi
-    rest-client (2.0.2)
+    rest-client (2.1.0.rc1)
+      http-accept (>= 1.7.0, < 2.0)
       http-cookie (>= 1.0.2, < 2.0)
       mime-types (>= 1.16, < 4.0)
       netrc (~> 0.8)
+    rufus-scheduler (3.5.1)
+      fugit (~> 1.1, >= 1.1.4)
+    thread_safe (0.3.6)
+    tzinfo (1.2.5)
+      thread_safe (~> 0.1)
     unf (0.1.4)
       unf_ext
-    unf_ext (0.0.7.4)
-    websocket (1.2.4)
+    unf_ext (0.0.7.5)
+    websocket (1.2.8)
     websocket-client-simple (0.3.0)
       event_emitter
       websocket
@@ -42,8 +61,11 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  discordrb (~> 3.2.1)
+  chronic (~> 0.10.2)
+  discordrb!
   mongo (~> 2.4.3)
+  rufus-scheduler (~> 3.5.1)
+  tzinfo
 
 RUBY VERSION
    ruby 2.3.1p112

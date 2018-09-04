@@ -1,7 +1,7 @@
-module Bot::DiscordCommands
+module Bot::WhereisCommands
   module Whereis
     extend Discordrb::Commands::CommandContainer
-    command(:whereis, min_args: 1) do |_event, *gym|
+    	command(:whereis, min_args: 1, description: 'find a gym') do |_event, *gym|
 			search_term = gym.join(' ')
 			message = lookup(search_term)
 			if message['name']
@@ -30,5 +30,11 @@ module Bot::DiscordCommands
 				message
 			end
     end
+  	whereis_text = "\nType `#{Bot::PREFIX}whereis` and a gym name or nickname to look up its location. "
+  	whereis_text += "\nTry `#{Bot::PREFIX}whereis happy donuts` to see it in action. "
+  	whereis_text += "\nIt is not case sensitive. In most cases, it can guess an incomplete name, but not typo-ed names. "
+  	whereis_text += "In other words, `#{Bot::PREFIX}whereis donut` will work, but `#{Bot::PREFIX}whereis hapy donts` will not. "
+  	whereis_text += "If the entered name isn\'t unique, maigo-helper will return a list of suggestions to narrow down your search."    
+    Bot::CommandCategories['lookup'].push :whereis => whereis_text
   end
 end
