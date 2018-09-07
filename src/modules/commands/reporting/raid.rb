@@ -20,8 +20,6 @@ module Bot::ReportingCommands
 				end
 			end
 
-			tz = TZInfo::Timezone.get('America/Los_Angeles')
-			#despawn_time = tz.utc_to_local(Time.now + minutes_left.to_i*60)
 			despawn_time = Time.now + minutes_left.to_i * 60
 
 			gym_data = lookup(gym)
