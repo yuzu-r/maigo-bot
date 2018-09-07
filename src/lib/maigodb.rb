@@ -45,7 +45,7 @@ end
 
 def register_egg(gym, hatch_time, despawn_time, tier, reported_by, server_id)
 	collection = CLIENT[:raid_reports]
-
+	puts "hatch time is: #{hatch_time}, despawn time is: #{despawn_time}"
 	egg = { gym: gym, hatch_time: hatch_time, despawn_time: despawn_time, tier: tier, reported_by: reported_by, server_id: server_id.to_s }
 	response = collection.insert_one(egg)
 	return response
@@ -56,18 +56,20 @@ def find_active_raids(server_id)
 
 	tz = TZInfo::Timezone.get('America/Los_Angeles')
 	puts "server time is: #{Time.now}"
-	local_server_time = tz.utc_to_local(Time.now)	
-	puts "local server time: #{local_server_time}"
+	#local_server_time = tz.utc_to_local(Time.now)	
+	#puts "local server time: #{local_server_time}"
 
 	active_raids = collection.find(
 		{ 'server_id': server_id,
-			'despawn_time': {'$gt' => local_server_time} }
+			#'despawn_time': {'$gt' => local_server_time} }
+			'despawn_time': {'$gt' => Time.now} }
 	).sort({ 'despawn_time': 1 }).to_a
 	return active_raids
 end
 
 def register_raid(gym, despawn_time, boss, reported_by, server_id)
 	collection = CLIENT[:raid_reports]
+	puts "despawn time is: #{despawn_time}"
 	raid = { gym: gym, despawn_time: despawn_time, boss: boss, reported_by: reported_by, server_id: server_id.to_s }
 	response = collection.insert_one(raid)
 	return response

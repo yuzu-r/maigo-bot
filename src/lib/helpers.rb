@@ -83,7 +83,9 @@ def get_active_range(time_string)
 		time = "in " + time_string + " minutes"
 		parsed_time = Chronic.parse(time)
 		return nil if !parsed_time
-  	start_time = tz.utc_to_local(parsed_time)
+		puts "parsed_time from chronic is: #{parsed_time}"
+		start_time = parsed_time
+  	#start_time = tz.utc_to_local(parsed_time)
   	despawn_time = start_time + 45 * 60
   	return [start_time, despawn_time]		
 	end
@@ -105,12 +107,20 @@ def silent_update(server, bot)
 	raid_message = "**Active and Pending Raids**"
 	if !active_raids || active_raids.count == 0
 	else
+		# mongo returns dates as UTC
+		tz = TZInfo::Timezone.get('America/Los_Angeles')
 	  active_raids.each do |raid|
 	  	# prepare an egg message or a raid message
 	  	if raid['tier']
-				raid_message += "\n#{raid['tier']}* (#{raid['hatch_time'].strftime("%-I:%M")} to **#{raid['despawn_time'].strftime("%-I:%M")}**) @ #{raid['gym']}"
+	  		puts "database hatch time is #{raid['hatch_time']}"
+	  		convert_hatch_time = tz.utc_to_local(raid['hatch_time'])
+	  		convert_despawn_time = tz.utc_to_local(raid['despawn_time'])
+				#raid_message += "\n#{raid['tier']}* (#{raid['hatch_time'].strftime("%-I:%M")} to **#{raid['despawn_time'].strftime("%-I:%M")}**) @ #{raid['gym']}"
+				raid_message += "\n#{raid['tier']}* (#{convert_hatch_time.strftime("%-I:%M")} to **#{convert_despawn_time.strftime("%-I:%M")}**) @ #{raid['gym']}"
 			else
-				raid_message += "\n#{raid['boss'].capitalize} (**#{raid['despawn_time'].strftime("%-I:%M")}**) @ #{raid['gym']} "
+				puts "database despawn time is #{raid['despawn_time']}"
+	  		convert_despawn_time = tz.utc_to_local(raid['despawn_time'])
+				raid_message += "\n#{raid['boss'].capitalize} (**#{convert_despawn_time.strftime("%-I:%M")}**) @ #{raid['gym']} "
 			end
 		end
 	end
@@ -130,7 +140,9 @@ def silent_update(server, bot)
 end
 
 def sort_and_pin(event)
-	active_raids = find_active_raids(event.server.id.to_s)	
+	active_raids = find_active_raids(event.server.id.to_s)
+	# mongo returns dates as UTC
+	tz = TZInfo::Timezone.get('America/Los_Angeles')
 	raid_message = "**Active and Pending Raids**"
 	if !active_raids || active_raids.count == 0 
 		event.respond "There are no active raids or pending eggs at this time. Rats."
@@ -138,9 +150,19 @@ def sort_and_pin(event)
 	  active_raids.each do |raid|
 	  	# prepare an egg message or a raid message
 	  	if raid['tier']
-				raid_message += "\n#{raid['tier']}* (#{raid['hatch_time'].strftime("%-I:%M")} to **#{raid['despawn_time'].strftime("%-I:%M")}**) @ #{raid['gym']}"
+	  		puts "database hatch time is #{raid['hatch_time']}"
+	  		convert_hatch_time = tz.utc_to_local(raid['hatch_time'])
+	  		puts "convert hatch time: #{convert_hatch_time}"
+	  		convert_despawn_time = tz.utc_to_local(raid['despawn_time'])
+	  		puts "convert despawn time: #{convert_despawn_time}"
+				#raid_message += "\n#{raid['tier']}* (#{convert_hatch_time.strftime("%-I:%M")} to **#{raid['despawn_time'].strftime("%-I:%M")}**) @ #{raid['gym']}"
+				raid_message += "\n#{raid['tier']}* (#{convert_hatch_time.strftime("%-I:%M")} to **#{convert_despawn_time.strftime("%-I:%M")}**) @ #{raid['gym']}"
 			else
-				raid_message += "\n#{raid['boss'].capitalize} (**#{raid['despawn_time'].strftime("%-I:%M")}**) @ #{raid['gym']} "
+				puts "database despawn time is #{raid['despawn_time']}"
+	  		convert_despawn_time = tz.utc_to_local(raid['despawn_time'])
+	  		puts "convert despawn time: #{convert_despawn_time}"				
+				#raid_message += "\n#{raid['boss'].capitalize} (**#{raid['despawn_time'].strftime("%-I:%M")}**) @ #{raid['gym']} "
+				raid_message += "\n#{raid['boss'].capitalize} (**#{convert_despawn_time.strftime("%-I:%M")}**) @ #{raid['gym']} "
 			end
 		end
 		event.respond raid_message

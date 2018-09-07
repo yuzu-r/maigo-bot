@@ -9,13 +9,20 @@ module Bot::ReportingCommands
 				sleep 3
 				no_message.delete
 			else
+				# mongo returns dates as UTC
+				tz = TZInfo::Timezone.get('America/Los_Angeles')				
 				raid_id = 1
 				delete_text = "Enter the number of the raid/egg you wish to remove, or 0 to cancel.\n0) **Cancel delete request**"
 				raids.each do |raid|
 			  	if raid['tier']
-						delete_text += "\n#{raid_id.to_s}) #{raid['tier']}* (#{raid['hatch_time'].strftime("%-I:%M")} to **#{raid['despawn_time'].strftime("%-I:%M")}**) @ #{raid['gym']}"
+			  		convert_hatch_time = tz.utc_to_local(raid['hatch_time'])
+			  		convert_despawn_time = tz.utc_to_local(raid['despawn_time'])
+						delete_text += "\n#{raid_id.to_s}) #{raid['tier']}* (#{convert_hatch_time.strftime("%-I:%M")} to **#{convert_despawn_time.strftime("%-I:%M")}**) @ #{raid['gym']}"
+						#delete_text += "\n#{raid_id.to_s}) #{raid['tier']}* (#{raid['hatch_time'].strftime("%-I:%M")} to **#{raid['despawn_time'].strftime("%-I:%M")}**) @ #{raid['gym']}"
 					else
-						delete_text += "\n#{raid_id.to_s}) #{raid['boss'].capitalize} (**#{raid['despawn_time'].strftime("%-I:%M")}**) @ #{raid['gym']} "
+			  		convert_despawn_time = tz.utc_to_local(raid['despawn_time'])
+			  		delete_text += "\n#{raid_id.to_s}) #{raid['boss'].capitalize} (**#{convert_despawn_time.strftime("%-I:%M")}**) @ #{raid['gym']} "
+						#delete_text += "\n#{raid_id.to_s}) #{raid['boss'].capitalize} (**#{raid['despawn_time'].strftime("%-I:%M")}**) @ #{raid['gym']} "
 					end
 					raid_id += 1
 				end
