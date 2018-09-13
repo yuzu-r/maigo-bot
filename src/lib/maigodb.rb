@@ -103,7 +103,7 @@ def insert_test(server)
 	gym_set = gyms.aggregate([ { '$sample' => { size: 7 } } ])
 	gym_set.each_with_index do |gym, i|
 		hatch_time = t + interval * i
-		despawn_time = hatch_time + 45*60
+		despawn_time = hatch_time + Bot::RAID_DURATION*60
 		gym_name = !gym['aliases'].nil? && !gym['aliases'].empty? ? gym['aliases'][0] : gym['name']
 		if rand(2) == 0
 			egg = { gym: gym_name, 
