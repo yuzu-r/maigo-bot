@@ -67,7 +67,7 @@ def get_active_range(time_string)
 		start_time = convert_time(time_string)
 		return nil if !start_time
 		# with a good start time, calculate the end time (45 mins later for eggs)
-  	despawn_time = start_time + 45*60
+  	despawn_time = start_time + Bot::RAID_DURATION*60
   	return [start_time, despawn_time]
 	else
 		time = "in " + time_string + " minutes"
@@ -75,7 +75,7 @@ def get_active_range(time_string)
 		return nil if !parsed_time
 		puts "parsed_time from chronic is: #{parsed_time}"
 		start_time = parsed_time
-  	despawn_time = start_time + 45 * 60
+  	despawn_time = start_time + Bot::RAID_DURATION * 60
   	return [start_time, despawn_time]		
 	end
 end
