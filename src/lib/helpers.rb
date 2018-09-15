@@ -129,12 +129,22 @@ def silent_update(server, bot)
 end
 
 def sort_and_pin(event)
+	m = nil # init message
+	raid_channel = get_raids_channel(event.server) || event.channel
+	bot_pin = get_bot_pin(raid_channel, event.bot.profile.id) 
 	active_raids = sort_raids(find_active_raids(event.server.id.to_s))
 	# mongo returns dates as UTC
 	tz = TZInfo::Timezone.get('America/Los_Angeles')
 	raid_message = "**Reported Active and Pending Raids**"
 	if !active_raids || active_raids.count == 0 
-		event.respond "There are no active raids or pending eggs at this time. Rats."
+		no_raid_message = "There are no active raids or pending eggs at this time. Rats."
+		if bot_pin
+			bot_pin.edit(raid_message)
+		else
+			new_pin = event.bot.send_message(raid_channel.id, raid_message)
+			new_pin.pin
+		end
+		m = event.bot.send_message(raid_channel.id, no_raid_message)
 	else
 	  active_raids.each do |raid|
 	  	recent_indicator = raid['is_recent'] ? ':new:' : ''
@@ -148,24 +158,19 @@ def sort_and_pin(event)
 				raid_message += "\n#{raid['boss'].capitalize} (**#{convert_despawn_time.strftime("%-I:%M")}**) @ #{raid['gym']} #{recent_indicator}"
 			end
 		end
-		message = event.respond raid_message
-		# delete the last message from the bot if there is one
-		if Bot::LastMessage[event.server.id.to_s]
-			Bot::LastMessage[event.server.id.to_s].delete
+		if bot_pin
+			bot_pin.edit(raid_message)
+			m = event.bot.send_message(raid_channel.id, raid_message)
+		else
+			new_pin = event.bot.send_message(raid_channel.id, raid_message)
+			new_pin.pin
 		end
-		Bot::LastMessage[event.server.id.to_s] = message
 	end
-	# update the pinned message
-	raid_channel = get_raids_channel(event.server) || event.channel
-	bot_pin = get_bot_pin(raid_channel, event.bot.profile.id)
-	if bot_pin
-		# edit the message already in pinned
-		bot_pin.edit(raid_message)
-	else
-		# create a new pinned message by the bot
-		bot_pin = event.bot.send_message(raid_channel.id, raid_message)
-		bot_pin.pin
+	if Bot::LastMessage[event.server.id.to_s]
+		Bot::LastMessage[event.server.id.to_s].delete
 	end
+	Bot::LastMessage[event.server.id.to_s] = m
+
 end
 
 def sort_raids(active_events)
