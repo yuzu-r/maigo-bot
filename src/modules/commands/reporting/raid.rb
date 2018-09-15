@@ -35,12 +35,7 @@ module Bot::ReportingCommands
 				puts "could not log raid to database"
 				is_success = false
 			end
-			embed = Discordrb::Webhooks::Embed.new
-			embed.title = "**#{boss.capitalize} raid until #{despawn_time.strftime("%-I:%M")}! (#{minutes_left} mins left)**"
-			embed.color = 15236612
-			embed.description = "Gym: #{gym_info} (reported by #{username})"
-			_event.bot.send_message(raid_channel.id, '',false, embed)
-			silent_update(_event.server, _event.bot)
+			sort_and_pin(_event)
 			_event.message.react("✅")
 			fallback_msg = "Could not log raid command to database!"
 			log_command(_event, 'raid', is_success, fallback_msg)

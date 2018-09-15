@@ -51,7 +51,7 @@ module Bot::ReportingCommands
 							initial_message.delete
 							response.message.delete
 							_event.message.delete
-							silent_update(_event.server, _event.bot)
+							sort_and_pin(_event)
 							sleep 3
 							raid_delete_message.delete
 						end

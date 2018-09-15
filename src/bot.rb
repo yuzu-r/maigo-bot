@@ -27,6 +27,7 @@ module Bot
   Trains = Hash.new
   CommandCategories = Hash.new
   CommandCategoriesHelp = Hash.new
+  LastMessage = Hash.new
 
   # Load non-Discordrb modules
   Dir['src/modules/*.rb'].each { |mod| load mod }
