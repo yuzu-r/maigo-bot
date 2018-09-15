@@ -51,12 +51,15 @@ module Bot::ReportingCommands
 					is_success = true
 				end
 
+=begin
+				# this is too spammy
 		  	embed = Discordrb::Webhooks::Embed.new
 		  	embed.title = "**#{tier}* hatches #{hatch_time.strftime("%-I:%M")} (despawns #{despawn_time.strftime("%-I:%M")})**"
 		  	embed.color = color
 		  	embed.description = "Gym: #{gym_info} (reported by #{username})"
 		  	_event.bot.send_message(egg_channel.id, '',false, embed)
-				silent_update(_event.server, _event.bot)
+=end
+				sort_and_pin(_event)
 		  	_event.message.react("✅")
 			else
 				_event.respond _event.user.mention + ' Please check the egg tier (1-5 allowed)'

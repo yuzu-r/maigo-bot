@@ -92,23 +92,24 @@ def param_check(command_line, num_required_params)
 end
 
 def silent_update(server, bot)
-	active_raids = find_active_raids(server.id.to_s)	
-	raid_message = "**Active and Pending Raids**"
+	active_raids = sort_raids(find_active_raids(server.id.to_s))
+	raid_message = "**Reported Active and Pending Raids**"
 	if !active_raids || active_raids.count == 0
 	else
 		# mongo returns dates as UTC
 		tz = TZInfo::Timezone.get('America/Los_Angeles')
 	  active_raids.each do |raid|
+	  	recent_indicator = raid['is_recent'] ? ':new:' : ''
 	  	# prepare an egg message or a raid message
 	  	if raid['tier']
 	  		puts "database hatch time is #{raid['hatch_time']}"
 	  		convert_hatch_time = tz.utc_to_local(raid['hatch_time']).strftime("%-I:%M")
 	  		convert_despawn_time = tz.utc_to_local(raid['despawn_time']).strftime("%-I:%M")
-				raid_message += "\n#{raid['tier']}* (#{convert_hatch_time} to **#{convert_despawn_time}**) @ #{raid['gym']}"
+				raid_message += "\n#{raid['tier']}* (#{convert_hatch_time} to **#{convert_despawn_time}**) @ #{raid['gym']} #{recent_indicator}"
 			else
 				puts "database despawn time is #{raid['despawn_time']}"
 	  		convert_despawn_time = tz.utc_to_local(raid['despawn_time']).strftime("%-I:%M")
-				raid_message += "\n#{raid['boss'].capitalize} (**#{convert_despawn_time}**) @ #{raid['gym']} "
+				raid_message += "\n#{raid['boss'].capitalize} (**#{convert_despawn_time}**) @ #{raid['gym']} #{recent_indicator}"
 			end
 		end
 	end
@@ -128,27 +129,31 @@ def silent_update(server, bot)
 end
 
 def sort_and_pin(event)
-	active_raids = find_active_raids(event.server.id.to_s)
+	active_raids = sort_raids(find_active_raids(event.server.id.to_s))
 	# mongo returns dates as UTC
 	tz = TZInfo::Timezone.get('America/Los_Angeles')
-	raid_message = "**Active and Pending Raids**"
+	raid_message = "**Reported Active and Pending Raids**"
 	if !active_raids || active_raids.count == 0 
 		event.respond "There are no active raids or pending eggs at this time. Rats."
 	else
 	  active_raids.each do |raid|
+	  	recent_indicator = raid['is_recent'] ? ':new:' : ''
 	  	# prepare an egg message or a raid message
 	  	if raid['tier']
-	  		puts "database hatch time is #{raid['hatch_time']}"
 	  		convert_hatch_time = tz.utc_to_local(raid['hatch_time']).strftime("%-I:%M")
 	  		convert_despawn_time = tz.utc_to_local(raid['despawn_time']).strftime("%-I:%M")
-				raid_message += "\n#{raid['tier']}* (#{convert_hatch_time} to **#{convert_despawn_time}**) @ #{raid['gym']}"
+				raid_message += "\n#{raid['tier']}* (#{convert_hatch_time} to **#{convert_despawn_time}**) @ #{raid['gym']} #{recent_indicator}"
 			else
-				puts "database despawn time is #{raid['despawn_time']}"
 	  		convert_despawn_time = tz.utc_to_local(raid['despawn_time'])
-				raid_message += "\n#{raid['boss'].capitalize} (**#{convert_despawn_time.strftime("%-I:%M")}**) @ #{raid['gym']} "
+				raid_message += "\n#{raid['boss'].capitalize} (**#{convert_despawn_time.strftime("%-I:%M")}**) @ #{raid['gym']} #{recent_indicator}"
 			end
 		end
-		event.respond raid_message
+		message = event.respond raid_message
+		# delete the last message from the bot if there is one
+		if Bot::LastMessage[event.server.id.to_s]
+			Bot::LastMessage[event.server.id.to_s].delete
+		end
+		Bot::LastMessage[event.server.id.to_s] = message
 	end
 	# update the pinned message
 	raid_channel = get_raids_channel(event.server) || event.channel
@@ -161,4 +166,16 @@ def sort_and_pin(event)
 		bot_pin = event.bot.send_message(raid_channel.id, raid_message)
 		bot_pin.pin
 	end
+end
+
+def sort_raids(active_events)
+	# take db results from get_active_raids
+	tz = TZInfo::Timezone.get('America/Los_Angeles')
+	recent_event_mins = 5 # reported within this many minutes ago to be considered new
+	recent_cutoff = tz.local_to_utc(Time.now - recent_event_mins * 60)
+	active_events.each do |e|
+		create_date = e['_id'].generation_time
+		e['is_recent'] = create_date > recent_cutoff 
+	end
+	return active_events
 end
