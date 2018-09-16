@@ -79,7 +79,6 @@ module Bot::ReportingCommands
 		egg_text += "\n`#{Bot::PREFIX}egg long song, 8, 2`"
   	egg_text += "\nAll pending eggs can be viewed in a pinned message in the Raids channel."
   	egg_text += "\nThere is no edit function; use `raid` to report the raid boss when egg hatches or `rm` to remove a mis-reported egg."
-  	egg_text += "\nIf the gym name can be resolved by the gym finder, a link to gmap will be included in the egg announcement."
     Bot::CommandCategories['reporting'].push :egg => egg_text    
   end
 end

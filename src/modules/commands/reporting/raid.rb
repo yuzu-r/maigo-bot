@@ -46,7 +46,6 @@ module Bot::ReportingCommands
   	raid_text += "\nTo report a kyogre raid with 42 minutes remaining at frog habitat:"
   	raid_text += "\n`#{Bot::PREFIX}raid frog, 42, kyogre`"
   	raid_text += "\nAll active raids can be viewed in a pinned message in the Raids channel."
-  	raid_text += "\nIf the gym name can be resolved by the gym finder, a link to gmap will be included in the raid announcement."
     Bot::CommandCategories['reporting'].push :raid => raid_text
   end
 end
