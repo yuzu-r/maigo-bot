@@ -146,6 +146,7 @@ def sort_and_pin(event)
 		end
 		m = event.bot.send_message(raid_channel.id, no_raid_message)
 	else
+		raid_message += "\nBoss despawn time is shown in **bold**."
 	  active_raids.each do |raid|
 	  	recent_indicator = raid['is_recent'] ? ':new:' : ''
 	  	# prepare an egg message or a raid message
