@@ -5,7 +5,7 @@ module Bot::ReportingCommands
 			tier_list = [1,2,3,4,5]
 			parsed_egg_data = comma_parse(egg_info)
 			if parsed_egg_data.count < 2 || parsed_egg_data.count > 3
-				usage_msg = "Usage: ,egg <gym>,<minutes to hatch>, <tier> (separated by commas)"
+				usage_msg = "Usage: #{Bot::PREFIX}egg <gym>,<minutes to hatch>, <tier> (separated by commas)"
 				_event.respond _event.user.mention + ' ' + usage_msg
 				return
 			else

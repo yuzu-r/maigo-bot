@@ -7,7 +7,7 @@ module Bot::ReportingCommands
 
 			parsed_raid_data = comma_parse(raid_info)
 			if parsed_raid_data.count != 3
-				error_msg = "Usage: ,raid <gym>,<minutes remaining>, <boss> (separated by commas)"
+				error_msg = "Usage: #{Bot::PREFIX}raid <gym>,<minutes remaining>, <boss> (separated by commas)"
 				_event.respond _event.user.mention + ' ' + error_msg
 				return		
 			else
