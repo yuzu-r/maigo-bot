@@ -5,13 +5,20 @@ module Bot::ReportingCommands
 			tier_list = [1,2,3,4,5]
 			parsed_egg_data = comma_parse(egg_info)
 			if parsed_egg_data.count < 2 || parsed_egg_data.count > 3
-				usage_msg = "Usage: #{Bot::PREFIX}egg <gym>,<minutes to hatch>, <tier> (separated by commas)"
+				usage_msg = "Usage: #{Bot::PREFIX}egg *gym*, *minutes or time to hatch*, *tier* (separated by commas)"
 				_event.respond _event.user.mention + ' ' + usage_msg
 				return
 			else
 				tier = parsed_egg_data.count == 2 ? 5 : parsed_egg_data[2]
 				gym = parsed_egg_data[0]
 				time_string = parsed_egg_data[1]
+				# no tags in the boss like <@!342468337999151116> or @here
+				if gym.include?('@')
+					error_msg = "No tags or mentions are allowed in the raid report."
+					_event.respond _event.user.mention + ' ' + error_msg
+					#_event.message.delete 
+					return
+				end
 			end
 
 			if tier_list.include?(tier.to_i)
