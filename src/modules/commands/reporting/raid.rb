@@ -7,7 +7,7 @@ module Bot::ReportingCommands
 
 			parsed_raid_data = comma_parse(raid_info)
 			if parsed_raid_data.count != 3
-				error_msg = "Usage: #{Bot::PREFIX}raid <gym>,<minutes remaining>, <boss> (separated by commas)"
+				error_msg = "Usage: #{Bot::PREFIX}raid *gym*, *minutes remaining*, *boss* (separated by commas)"
 				_event.respond _event.user.mention + ' ' + error_msg
 				return		
 			else
@@ -16,6 +16,13 @@ module Bot::ReportingCommands
 				if !time_ok.nil? # do not accept : or anything other than digits for raids
 					error_msg = "The raid command only accepts minutes remaining (do not include seconds)"
 					_event.respond _event.user.mention + ' ' + error_msg
+					return
+				end
+				# no tags in the boss like <@!342468337999151116> or @here
+				if boss.include?('@') || gym.include?('@')
+					error_msg = "No tags or mentions are allowed in the raid report."
+					_event.respond _event.user.mention + ' ' + error_msg
+					#_event.message.delete
 					return
 				end
 			end
