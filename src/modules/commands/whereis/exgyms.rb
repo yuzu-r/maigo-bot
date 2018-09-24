@@ -10,7 +10,8 @@ module Bot::WhereisCommands
 					embed = Discordrb::Webhooks::Embed.new
 					embed.title = "__**Area Gyms Eligible for EX Raids:**__"
 					embed.color = 15236612
-					description = ""
+					description = "*Note:* Niantic recently changed 'ex raid location' designations."
+					description += "\nUntil new ex raid invites go out, the following are suggestions, not confirmed locations."
 					ex_gyms.each do |gym|
 						if gym['gmap']
 							gym_info = '[' + gym['name'] + ']' + '(' + gym['gmap'] + ')'
@@ -32,6 +33,8 @@ module Bot::WhereisCommands
 				return
 	    end
 	  exgyms_text = "Type `#{Bot::PREFIX}exgyms` to see a listing of El Cerrito/Albany gyms known to hold ex raids."
+	  exgyms_text += "\nThere are recent changes to how gyms are marked as 'ex raid eligible'. Until we see ex raid invitations being sent, "
+	  exgyms_text += "the displayed gyms should not be interpreted as a definitive list."
 		Bot::CommandCategories['lookup'].push :exgyms => exgyms_text
   end
 end
