@@ -71,7 +71,7 @@ module Bot::ReportingCommands
 		  	_event.bot.send_message(egg_channel.id, '',false, embed)
 =end
 				sort_and_pin(_event)
-		  	_event.message.react("✅")
+		  	#_event.message.react("✅")
 		  	updateDeleteMessageQueue(Bot::DeleteEggMessageQueue[server_id], _event)
 			else
 				_event.respond _event.user.mention + ' Please check the egg tier (1-5 allowed)'
