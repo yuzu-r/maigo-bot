@@ -46,7 +46,7 @@ module Bot::ReportingCommands
 				is_success = false
 			end
 			sort_and_pin(_event)
-			_event.message.react("✅")
+			#_event.message.react("✅")
 			updateDeleteMessageQueue(Bot::DeleteRaidMessageQueue[server_id], _event)
 			fallback_msg = "Could not log raid command to database!"
 			log_command(_event, 'raid', is_success, fallback_msg)

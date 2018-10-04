@@ -186,15 +186,16 @@ def sort_raids(active_events)
 	return active_events
 end
 
-def updateDeleteMessageQueue(queue, event, isGoodCommand = true)
-	# if isGoodCommand, safe to remove last one - else, queue for delete only
+def updateDeleteMessageQueue(queue,event,isGoodCommand = true)
+	raid_channel = get_raids_channel(event.server) || event.channel
 	if isGoodCommand
-		while queue.count > 0 
-			message = queue.pop
-			# user might have deleted message already... not catching this rn
-			message.delete
+		while queue && queue.count > 0
+			messageId = queue.pop
+			message = raid_channel.message(messageId)
+			if message
+				message.delete
+			end
 		end
 	end
-	queue.push event.message
+	queue.push event.message.id
 end
-
