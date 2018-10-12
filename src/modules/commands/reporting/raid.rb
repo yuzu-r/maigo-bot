@@ -10,7 +10,7 @@ module Bot::ReportingCommands
 			if parsed_raid_data.count != 3
 				error_msg = "Usage: #{Bot::PREFIX}raid *gym*, *minutes remaining*, *boss* (separated by commas)"
 				_event.respond _event.user.mention + ' ' + error_msg
-				updateDeleteMessageQueue(Bot::DeleteRaidMessageQueue[server_id], _event, false)
+				delete_message_queue(Bot::DeleteRaidMessageQueue[server_id], _event, false)
 				return		
 			else
 				gym, minutes_left, boss = parsed_raid_data
@@ -18,14 +18,14 @@ module Bot::ReportingCommands
 				if !time_ok.nil? # do not accept : or anything other than digits for raids
 					error_msg = "The raid command only accepts minutes remaining (do not include seconds)"
 					_event.respond _event.user.mention + ' ' + error_msg
-					updateDeleteMessageQueue(Bot::DeleteRaidMessageQueue[server_id], _event, false)
+					delete_message_queue(Bot::DeleteRaidMessageQueue[server_id], _event, false)
 					return
 				end
 				# no tags in the boss like <@!342468337999151116> or @here
 				if boss.include?('@') || gym.include?('@')
 					error_msg = "No tags or mentions are allowed in the raid report."
 					_event.respond _event.user.mention + ' ' + error_msg
-					updateDeleteMessageQueue(Bot::DeleteRaidMessageQueue[server_id], _event, false)
+					delete_message_queue(Bot::DeleteRaidMessageQueue[server_id], _event, false)
 					return
 				end
 			end
@@ -47,7 +47,7 @@ module Bot::ReportingCommands
 			end
 			sort_and_pin(_event)
 			#_event.message.react("✅")
-			updateDeleteMessageQueue(Bot::DeleteRaidMessageQueue[server_id], _event)
+			delete_message_queue(Bot::DeleteRaidMessageQueue[server_id], _event)
 			fallback_msg = "Could not log raid command to database!"
 			log_command(_event, 'raid', is_success, fallback_msg)
 			return

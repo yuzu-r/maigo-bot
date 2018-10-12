@@ -186,16 +186,36 @@ def sort_raids(active_events)
 	return active_events
 end
 
-def updateDeleteMessageQueue(queue,event,isGoodCommand = true)
+def delete_message_queue(queue,event,is_good_command = true)
 	raid_channel = get_raids_channel(event.server) || event.channel
-	if isGoodCommand
+	if is_good_command
 		while queue && queue.count > 0
-			messageId = queue.pop
-			message = raid_channel.message(messageId)
+			message_id = queue.pop
+			message = raid_channel.message(message_id)
 			if message
 				message.delete
 			end
 		end
 	end
 	queue.push event.message.id
+end
+
+def get_new_members(event, days_ago=nil)
+	no_role_members = []
+  # the join date is in local time
+  # if you pass in 2 days ago, you want to retrieve members who joined in the past 2 days
+  # if no days_ago, you want all members who have no roles
+  if days_ago
+  	join_cutoff = Time.now - days_ago * 24 * 60 * 60 
+  end
+  event.server.members.each do | member |
+	  if !days_ago && member.roles.empty?
+      no_role_members.push member
+    elsif days_ago
+      if member.joined_at > join_cutoff && member.roles.empty?
+      	no_role_members.push member
+      end
+    end
+  end	
+	return no_role_members
 end
