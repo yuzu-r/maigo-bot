@@ -14,7 +14,10 @@ module Bot
   client_id = ENV['DISCORD_CLIENT_ID']
   token = ENV['DISCORD_TOKEN']
   PREFIX = ENV['DISCORD_PREFIX']
-  LOGGING = ENV['LOGGING'].to_s  
+  LOGGING = ENV['LOGGING'].to_s
+  MOD_ROLE_ID = ENV['MOD_ROLE_ID'].to_i || nil
+  MOD_CHANNEL_ID = ENV['MOD_CHANNEL_ID'].to_i || nil
+  MAX_MEMBERS_RETURNED = ENV['MAX_MEMBERS_RETURNED'].to_i || 100
   CLEAN_INTERVAL = ENV['CLEAN_INTERVAL']
   EGG_DURATION = ENV['EGG_DURATION'].to_i
   RAID_DURATION = ENV['RAID_DURATION'].to_i
@@ -79,9 +82,15 @@ module Bot
   else
     CommandCategoriesHelp.delete('train')
   end
+
+  if MOD_ROLE_ID
+    BOT.set_role_permission(MOD_ROLE_ID,1)
+    load_modules(:ModCommands, 'commands/mod')
+  end
   
   load_modules(:MiscCommands, 'commands/misc')
   load_modules(:HelpCommands, 'commands/help')
+  
 
   # Run the bot
   #p CommandCategories
