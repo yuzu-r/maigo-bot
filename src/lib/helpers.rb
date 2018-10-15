@@ -208,20 +208,14 @@ def get_new_members(event, days_ago=nil)
   if days_ago
   	join_cutoff = Time.now - days_ago * 24 * 60 * 60 
   end
-  discord_members = event.server.members
-  if discord_members && discord_members.count > 0
-  	discord_members.each do | member |
-	  	if !days_ago && member.roles.empty?
+  event.server.members.each do | member |
+	  if !days_ago && member.roles.empty?
+      no_role_members.push member
+    elsif days_ago
+      if member.joined_at > join_cutoff && member.roles.empty?
       	no_role_members.push member
-    	elsif days_ago
-    		puts "joined_at: #{member.joined_at}, compare with #{join_cutoff}"
-      	if member.joined_at > join_cutoff && member.roles.empty?
-      		no_role_members.push member
-      	end
-    	end
-  	end
-  else
-  	puts "unable to fetch members from discord..."
-  end
+      end
+    end
+  end	
 	return no_role_members
 end

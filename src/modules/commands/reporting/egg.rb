@@ -77,9 +77,10 @@ module Bot::ReportingCommands
 				_event.respond _event.user.mention + ' Please check the egg tier (1-5 allowed)'
 				delete_message_queue(Bot::DeleteEggMessageQueue[server_id], _event, false)
 			end
+
+			return
 			fallback_msg = "Could not log egg command to database!"
 			log_command(_event, 'egg', is_success, fallback_msg)
-			return
     end
   	egg_text = "\n**Egg Reporting**"
   	egg_text += "\n`#{Bot::PREFIX}egg [gym], [minutes to hatch OR hatch time], [optional tier]`"
