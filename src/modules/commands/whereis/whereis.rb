@@ -11,10 +11,9 @@ module Bot::WhereisCommands
 					title = message['name']
 				end
 				_event << title
-				# temporarily remove this until we have a better handle on ex raid gyms
-				#if message['is_ex_eligible']
-				#	_event << 'EX Raid Location!'
-				#end
+				if message['is_ex_eligible']
+					_event << 'EX Raid Location!'
+				end
 				_event << message['address']
 				if message['landmark']
 					_event << 'Near: ' + message['landmark']

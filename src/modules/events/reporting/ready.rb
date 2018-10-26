@@ -7,6 +7,8 @@ module Bot::ReportingEvents
     		Bot::Trains[server_id] = Train.new
     		Bot::DeleteRaidMessageQueue[server_id] = []
     		Bot::DeleteEggMessageQueue[server_id] = []
+    		puts "server: #{server}"
+    		puts "#{server.emoji}"
     	end
 			# Bot::Scheduler.cron '*/15 13-23,0-2 * * *' do # the utc version
 			# start at 6, stop at 8 local
