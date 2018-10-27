@@ -12,7 +12,9 @@ module Bot::WhereisCommands
 				end
 				_event << title
 				if message['is_ex_eligible']
-					_event << 'EX Raid Location!'
+					emoji = _event.bot.find_emoji(Bot::LEGENDARY_EMOJI)
+					emoji_text = emoji ? emoji.mention : ':exclamation:'
+					_event << emoji_text + ' EX Raid Location!'
 				end
 				_event << message['address']
 				if message['landmark']
