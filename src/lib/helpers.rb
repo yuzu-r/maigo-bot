@@ -92,6 +92,9 @@ def param_check(command_line, num_required_params)
 end
 
 def silent_update(server, bot)
+	emoji = bot.find_emoji(Bot::LEGENDARY_EMOJI)
+	emoji_text = emoji ? emoji.mention : ':exclamation:'
+
 	active_raids = sort_raids(find_active_raids(server.id.to_s))
 	raid_message = "**Reported Active and Pending Raids**"
 	if !active_raids || active_raids.count == 0
@@ -100,16 +103,17 @@ def silent_update(server, bot)
 		tz = TZInfo::Timezone.get('America/Los_Angeles')
 	  active_raids.each do |raid|
 	  	recent_indicator = raid['is_recent'] ? ':new:' : ''
+	  	ex_gym_indicator = is_ex?(raid['gym']) ? emoji_text : '' 
 	  	# prepare an egg message or a raid message
 	  	if raid['tier']
 	  		puts "database hatch time is #{raid['hatch_time']}"
 	  		convert_hatch_time = tz.utc_to_local(raid['hatch_time']).strftime("%-I:%M")
 	  		convert_despawn_time = tz.utc_to_local(raid['despawn_time']).strftime("%-I:%M")
-				raid_message += "\n#{raid['tier']}* (#{convert_hatch_time} to **#{convert_despawn_time}**) @ #{raid['gym']} #{recent_indicator}"
+				raid_message += "\n#{raid['tier']}* (#{convert_hatch_time} to **#{convert_despawn_time}**) @ #{raid['gym']} #{ex_gym_indicator} #{recent_indicator}"
 			else
 				puts "database despawn time is #{raid['despawn_time']}"
 	  		convert_despawn_time = tz.utc_to_local(raid['despawn_time']).strftime("%-I:%M")
-				raid_message += "\n#{raid['boss'].capitalize} (**#{convert_despawn_time}**) @ #{raid['gym']} #{recent_indicator}"
+				raid_message += "\n#{raid['boss'].capitalize} (**#{convert_despawn_time}**) @ #{raid['gym']} #{ex_gym_indicator} #{recent_indicator}"
 			end
 		end
 	end
@@ -130,6 +134,9 @@ end
 
 def sort_and_pin(event)
 	m = nil # init message
+	emoji = event.bot.find_emoji(Bot::LEGENDARY_EMOJI)
+	emoji_text = emoji ? emoji.mention : ':exclamation:'
+
 	raid_channel = get_raids_channel(event.server) || event.channel
 	bot_pin = get_bot_pin(raid_channel, event.bot.profile.id) 
 	active_raids = sort_raids(find_active_raids(event.server.id.to_s))
@@ -149,14 +156,15 @@ def sort_and_pin(event)
 		raid_message += "\nBoss despawn time is shown in **bold**."
 	  active_raids.each do |raid|
 	  	recent_indicator = raid['is_recent'] ? ':new:' : ''
+	  	ex_gym_indicator = is_ex?(raid['gym']) ? emoji_text : '' 
 	  	# prepare an egg message or a raid message
 	  	if raid['tier']
 	  		convert_hatch_time = tz.utc_to_local(raid['hatch_time']).strftime("%-I:%M")
 	  		convert_despawn_time = tz.utc_to_local(raid['despawn_time']).strftime("%-I:%M")
-				raid_message += "\n#{raid['tier']}* (#{convert_hatch_time} to **#{convert_despawn_time}**) @ #{raid['gym']} #{recent_indicator}"
+				raid_message += "\n#{raid['tier']}* (#{convert_hatch_time} to **#{convert_despawn_time}**) @ #{raid['gym']} #{ex_gym_indicator} #{recent_indicator}"
 			else
 	  		convert_despawn_time = tz.utc_to_local(raid['despawn_time'])
-				raid_message += "\n#{raid['boss'].capitalize} (**#{convert_despawn_time.strftime("%-I:%M")}**) @ #{raid['gym']} #{recent_indicator}"
+				raid_message += "\n#{raid['boss'].capitalize} (**#{convert_despawn_time.strftime("%-I:%M")}**) @ #{raid['gym']} #{ex_gym_indicator} #{recent_indicator}"
 			end
 		end
 		if bot_pin

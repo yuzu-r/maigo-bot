@@ -4,6 +4,7 @@ module Bot::WhereisCommands
     	command(:whereis, min_args: 1, description: 'find a gym') do |_event, *gym|
 			search_term = gym.join(' ')
 			message = lookup(search_term)
+
 			if message['name']
 				if message['name'].downcase != search_term.downcase
 					title = search_term + ', aka ' + message['name']
