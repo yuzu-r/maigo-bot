@@ -22,10 +22,11 @@ module Bot
   EGG_DURATION = ENV['EGG_DURATION'].to_i
   RAID_DURATION = ENV['RAID_DURATION'].to_i
   WHEREIS_ACTIVE = ENV['WHEREIS_ACTIVE'] || nil
+  LEGENDARY_EMOJI = ENV['LEGENDARY_EMOJI'] || nil
   REPORTING_ACTIVE = ENV['REPORTING_ACTIVE'] || nil
   TRAIN_ACTIVE = ENV['TRAIN_ACTIVE'] || nil
   ENV = ENV['ENV'] || nil
-
+  
   Scheduler = Rufus::Scheduler.new
   Trains = Hash.new
   CommandCategories = Hash.new

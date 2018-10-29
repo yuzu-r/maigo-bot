@@ -36,6 +36,14 @@ def ex_gym_lookup
 	return documents
 end
 
+def is_ex?(gym)
+	collection = CLIENT[:gyms]
+	exact_string =  '"' + gym + '"'
+	documents = collection.find({ '$text': { '$search': exact_string } })
+
+	return documents.count == 1 && documents.first['is_ex_eligible'] == true
+end
+
 def log(server_id, user_id, command, params, is_success)
 	collection = CLIENT[:logs]
 	entry = { server_id: server_id.to_s, user_id: user_id.to_s, command: command, params: params, is_success: is_success, insert_date: Time.now }

@@ -4,6 +4,7 @@ module Bot::WhereisCommands
     	command(:whereis, min_args: 1, description: 'find a gym') do |_event, *gym|
 			search_term = gym.join(' ')
 			message = lookup(search_term)
+
 			if message['name']
 				if message['name'].downcase != search_term.downcase
 					title = search_term + ', aka ' + message['name']
@@ -11,10 +12,11 @@ module Bot::WhereisCommands
 					title = message['name']
 				end
 				_event << title
-				# temporarily remove this until we have a better handle on ex raid gyms
-				#if message['is_ex_eligible']
-				#	_event << 'EX Raid Location!'
-				#end
+				if message['is_ex_eligible']
+					emoji = _event.bot.find_emoji(Bot::LEGENDARY_EMOJI)
+					emoji_text = emoji ? emoji.mention : ':exclamation:'
+					_event << emoji_text + ' EX Raid Location!'
+				end
 				_event << message['address']
 				if message['landmark']
 					_event << 'Near: ' + message['landmark']
