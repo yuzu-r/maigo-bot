@@ -103,17 +103,19 @@ def silent_update(server, bot)
 		tz = TZInfo::Timezone.get('America/Los_Angeles')
 	  active_raids.each do |raid|
 	  	recent_indicator = raid['is_recent'] ? ':new:' : ''
-	  	ex_gym_indicator = is_ex?(raid['gym']) ? emoji_text : '' 
+	  	ex_gym_indicator = is_ex?(raid['gym']) ? emoji_text : ''
+	  	# having more than one '' in a row breaks display on iphone (10/29/18)
+	  	indicators = ex_gym_indicator + recent_indicator
 	  	# prepare an egg message or a raid message
 	  	if raid['tier']
 	  		puts "database hatch time is #{raid['hatch_time']}"
 	  		convert_hatch_time = tz.utc_to_local(raid['hatch_time']).strftime("%-I:%M")
 	  		convert_despawn_time = tz.utc_to_local(raid['despawn_time']).strftime("%-I:%M")
-				raid_message += "\n#{raid['tier']}* (#{convert_hatch_time} to **#{convert_despawn_time}**) @ #{raid['gym']} #{ex_gym_indicator} #{recent_indicator}"
+				raid_message += "\n#{raid['tier']}* (#{convert_hatch_time} to **#{convert_despawn_time}**) @ #{raid['gym']} #{indicators}"
 			else
 				puts "database despawn time is #{raid['despawn_time']}"
 	  		convert_despawn_time = tz.utc_to_local(raid['despawn_time']).strftime("%-I:%M")
-				raid_message += "\n#{raid['boss'].capitalize} (**#{convert_despawn_time}**) @ #{raid['gym']} #{ex_gym_indicator} #{recent_indicator}"
+				raid_message += "\n#{raid['boss'].capitalize} (**#{convert_despawn_time}**) @ #{raid['gym']} #{indicators}"
 			end
 		end
 	end
@@ -142,7 +144,7 @@ def sort_and_pin(event)
 	active_raids = sort_raids(find_active_raids(event.server.id.to_s))
 	# mongo returns dates as UTC
 	tz = TZInfo::Timezone.get('America/Los_Angeles')
-	raid_message = "**Reported Active and Pending Raids**"
+	raid_message = "**Reported Active and Pending Raids**\n"
 	if !active_raids || active_raids.count == 0 
 		no_raid_message = "There are no active raids or pending eggs at this time. Rats."
 		if bot_pin
@@ -153,18 +155,20 @@ def sort_and_pin(event)
 		end
 		m = event.bot.send_message(raid_channel.id, no_raid_message)
 	else
-		raid_message += "\nBoss despawn time is shown in **bold**."
+		raid_message += "Boss despawn time is shown in **bold**.\n"
 	  active_raids.each do |raid|
 	  	recent_indicator = raid['is_recent'] ? ':new:' : ''
-	  	ex_gym_indicator = is_ex?(raid['gym']) ? emoji_text : '' 
+	  	ex_gym_indicator = is_ex?(raid['gym']) ? emoji_text : ''
+	  	# having more than one '' in a row breaks display on iphone (10/29/18)
+	  	indicators = ex_gym_indicator + recent_indicator
 	  	# prepare an egg message or a raid message
 	  	if raid['tier']
 	  		convert_hatch_time = tz.utc_to_local(raid['hatch_time']).strftime("%-I:%M")
 	  		convert_despawn_time = tz.utc_to_local(raid['despawn_time']).strftime("%-I:%M")
-				raid_message += "\n#{raid['tier']}* (#{convert_hatch_time} to **#{convert_despawn_time}**) @ #{raid['gym']} #{ex_gym_indicator} #{recent_indicator}"
+				raid_message += "#{raid['tier']}* (#{convert_hatch_time} to **#{convert_despawn_time}**) @ #{raid['gym']} #{indicators}\n"
 			else
 	  		convert_despawn_time = tz.utc_to_local(raid['despawn_time'])
-				raid_message += "\n#{raid['boss'].capitalize} (**#{convert_despawn_time.strftime("%-I:%M")}**) @ #{raid['gym']} #{ex_gym_indicator} #{recent_indicator}"
+				raid_message += "#{raid['boss'].capitalize} (**#{convert_despawn_time.strftime("%-I:%M")}**) @ #{raid['gym']} #{indicators}\n"
 			end
 		end
 		if bot_pin

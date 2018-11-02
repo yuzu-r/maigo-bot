@@ -32,7 +32,7 @@ def ex_gym_lookup
 	collection = CLIENT[:gyms]
 	documents = collection.find(
 		{ 'is_ex_eligible': true },
-	)
+	).sort({ 'name': 1 })
 	return documents
 end
 
