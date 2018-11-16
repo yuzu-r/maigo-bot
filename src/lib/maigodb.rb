@@ -87,6 +87,22 @@ def get_reporters(server_id)
 	return response
 end
 
+def get_weeks_reporters(server_id, start_date_utc)
+	collection = CLIENT[:raid_reports]
+
+	starting_object_id = BSON::ObjectId.from_time(start_date_utc)
+	response = collection.aggregate([
+								{'$match' => {
+									'server_id' => server_id,
+									'_id' => {'$gte' => starting_object_id}}
+								},
+								{'$group' => {'_id' => "$reported_by", 'total' => {'$sum' => 1}}},
+								{'$sort' => {total: -1}},
+								{'$limit' => 10}		
+							])
+	return response
+end
+
 def delete_raid(raid_id)
 	collection = CLIENT[:raid_reports]
 
