@@ -53,8 +53,7 @@ module Bot::ReportingCommands
 				else
 					gym_info = gym
 				end
-
-		  	response = register_egg(gym, hatch_time, despawn_time, tier.to_i, username, _event.server.id)
+		  	response = register_egg(gym, hatch_time, despawn_time, tier.to_i, username, _event.server.id, _event.user.id)
 				if !response || response.n != 1
 					puts "could not log egg to database"
 					is_success = false

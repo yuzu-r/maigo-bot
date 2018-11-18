@@ -1,7 +1,7 @@
 module Bot::ReportingCommands
-  module Leaderboard
+  module Alltimeleaderboard
     extend Discordrb::Commands::CommandContainer
-    command(:leaderboard, description: 'raid/egg reporter leaderboard') do |_event|
+    command(:alltime, description: 'raid/egg reporter all-time leaderboard') do |_event|
 			response = get_reporters(_event.server.id.to_s)
 			rank = 1
 			reporter_text = "Thank you to *all* reporters!"
@@ -24,8 +24,8 @@ module Bot::ReportingCommands
 			return
     end
     leaderboard_text = "\n**Leaderboard Command**"
-    leaderboard_text += "\n`#{Bot::PREFIX}leaderboard`"
+    leaderboard_text += "\n`#{Bot::PREFIX}alltime`"
   	leaderboard_text += "\nThis experimental command will display information about who reports the most raids/eggs."
-    Bot::CommandCategories['reporting'].push :leaderboard => leaderboard_text        
+    Bot::CommandCategories['reporting'].push :alltime => leaderboard_text        
   end
 end

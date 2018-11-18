@@ -51,9 +51,9 @@ def log(server_id, user_id, command, params, is_success)
 	return response	
 end
 
-def register_egg(gym, hatch_time, despawn_time, tier, reported_by, server_id)
+def register_egg(gym, hatch_time, despawn_time, tier, reported_by, server_id, user_id)
 	collection = CLIENT[:raid_reports]
-	egg = { gym: gym, hatch_time: hatch_time, despawn_time: despawn_time, tier: tier, reported_by: reported_by, server_id: server_id.to_s }
+	egg = { gym: gym, hatch_time: hatch_time, despawn_time: despawn_time, tier: tier, reported_by: reported_by, server_id: server_id.to_s, user_id: user_id }
 	response = collection.insert_one(egg)
 	return response
 end
@@ -68,9 +68,9 @@ def find_active_raids(server_id)
 	return active_raids
 end
 
-def register_raid(gym, despawn_time, boss, reported_by, server_id)
+def register_raid(gym, despawn_time, boss, reported_by, server_id, user_id)
 	collection = CLIENT[:raid_reports]
-	raid = { gym: gym, despawn_time: despawn_time, boss: boss, reported_by: reported_by, server_id: server_id.to_s }
+	raid = { gym: gym, despawn_time: despawn_time, boss: boss, reported_by: reported_by, server_id: server_id.to_s, user_id: user_id }
 	response = collection.insert_one(raid)
 	return response
 end
@@ -83,6 +83,22 @@ def get_reporters(server_id)
 								{'$group' => {'_id' => "$reported_by", 'total' => {'$sum' => 1}}},
 								{'$sort' => {total: -1}},
 								{'$limit' => 10}
+							])
+	return response
+end
+
+def get_weeks_reporters(server_id, start_date_utc)
+	collection = CLIENT[:raid_reports]
+
+	starting_object_id = BSON::ObjectId.from_time(start_date_utc)
+	response = collection.aggregate([
+								{'$match' => {
+									'server_id' => server_id,
+									'_id' => {'$gte' => starting_object_id}}
+								},
+								{'$group' => {'_id' => "$reported_by", 'total' => {'$sum' => 1}}},
+								{'$sort' => {total: -1}},
+								{'$limit' => 10}		
 							])
 	return response
 end
