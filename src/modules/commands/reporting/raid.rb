@@ -38,8 +38,7 @@ module Bot::ReportingCommands
 			else
 				gym_info = gym
 			end
-
-			response = register_raid(gym, despawn_time, boss, username, _event.server.id)
+			response = register_raid(gym, despawn_time, boss, username, _event.server.id, _event.user.id)
 			is_success = true
 			if !response || response.n != 1
 				puts "could not log raid to database"
