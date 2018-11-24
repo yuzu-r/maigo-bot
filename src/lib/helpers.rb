@@ -231,3 +231,8 @@ def get_new_members(event, days_ago=nil)
   end	
 	return no_role_members
 end
+
+def get_user_nickname(server, user_id)
+	member = server.members.find {|m| m.id == user_id}
+	return member.nil? ? "<unown>" : member.display_name
+end
