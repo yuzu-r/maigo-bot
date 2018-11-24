@@ -11,7 +11,7 @@ module Bot::ModCommands
           days_ago_text = "(all-time list)..."
         end
 		  	_event << "Polling #{_event.server.member_count} members for people who have no roles #{days_ago_text}"
-        no_role_members = get_new_members(_event, joined_days_ago)
+        no_role_members = get_new_members_no_roles(_event, joined_days_ago).sort_by{|m| m.joined_at}
         if no_role_members.nil? || no_role_members.empty?
          _event << "Could not find new members without roles in the last #{joined_days_ago} days."
         elsif no_role_members.count > Bot::MAX_MEMBERS_RETURNED
@@ -23,8 +23,7 @@ module Bot::ModCommands
         else
           _event << "Found #{no_role_members.count} members with no roles defined:"
           no_role_members.each do | m |
-            #_event << m.display_name + ' (' + m.username +  '#' +"#{m.discriminator}" + ')' + ', joined on: ' + m.joined_at.strftime("%m/%d/%Y")
-            _event << m.display_name + ', joined: ' + m.joined_at.strftime("%m/%d/%Y")
+            _event << "#{m.username}\##{m.discriminator} (#{m.display_name}) joined on #{m.joined_at.strftime("%m/%d/%Y")}"
           end
         end
         return    	

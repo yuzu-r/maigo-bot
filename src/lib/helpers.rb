@@ -212,7 +212,7 @@ def delete_message_queue(queue,event,is_good_command = true)
 	queue.push event.message.id
 end
 
-def get_new_members(event, days_ago=nil)
+def get_new_members_no_roles(event, days_ago=nil)
 	no_role_members = []
   # the join date is in local time
   # if you pass in 2 days ago, you want to retrieve members who joined in the past 2 days
@@ -230,6 +230,18 @@ def get_new_members(event, days_ago=nil)
     end
   end	
 	return no_role_members
+end
+
+def get_new_members(event, days_ago)
+	new_members = []
+	join_cutoff = Time.now - days_ago * 24 * 60 * 60
+
+	event.server.members.each do |member|
+		if member.joined_at > join_cutoff
+			new_members.push member
+		end		
+	end
+	return new_members
 end
 
 def get_user_nickname(server, user_id)
