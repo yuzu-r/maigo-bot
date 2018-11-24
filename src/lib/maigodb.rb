@@ -80,7 +80,7 @@ def get_reporters(server_id)
 
 	response = collection.aggregate([
 								{'$match' => {'server_id' => server_id}},
-								{'$group' => {'_id' => "$reported_by", 'total' => {'$sum' => 1}}},
+								{'$group' => {'_id' => "$user_id", 'total' => {'$sum' => 1}}},
 								{'$sort' => {total: -1}},
 								{'$limit' => 10}
 							])
@@ -96,7 +96,7 @@ def get_weeks_reporters(server_id, start_date_utc)
 									'server_id' => server_id,
 									'_id' => {'$gte' => starting_object_id}}
 								},
-								{'$group' => {'_id' => "$reported_by", 'total' => {'$sum' => 1}}},
+								{'$group' => {'_id' => "$user_id", 'total' => {'$sum' => 1}}},
 								{'$sort' => {total: -1}},
 								{'$limit' => 10}		
 							])

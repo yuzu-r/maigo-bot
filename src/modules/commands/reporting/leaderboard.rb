@@ -7,10 +7,11 @@ module Bot::ReportingCommands
 			reporter_text = "Thank you to *all* reporters!"
 			reporter_text += "\n**+=+=+=+=+=+=+=+=+=+=+**\n"
 			response.each do |reporter|
+				reporter_nickname = get_user_nickname(_event.server, reporter['_id'])
 				if rank == 1
-					reporter_text += "\n:first_place: #{reporter['_id']} (#{reporter['total']})"
+					reporter_text += "\n:first_place: #{reporter_nickname} (#{reporter['total']})"
 				else
-					reporter_text += "\n    #{reporter['_id']} (#{reporter['total']})"
+					reporter_text += "\n    #{reporter_nickname} (#{reporter['total']})"
 				end
 				rank += 1
 			end
