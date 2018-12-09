@@ -248,3 +248,9 @@ def get_user_nickname(server, user_id)
 	member = server.members.find {|m| m.id == user_id}
 	return member.nil? ? "<unown>" : member.display_name
 end
+
+def hatch_egg(server, user, egg_id, boss)
+	reported_by = user.display_name
+	db_response = egg_to_raid(server.id.to_s, user.id, reported_by, egg_id, boss)
+	return db_response
+end
