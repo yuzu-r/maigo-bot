@@ -20,11 +20,11 @@ module Bot::StaticText
   	reporting_text += "\nUse `#{Bot::PREFIX}active` for a list of active and pending raids, sorted by despawn time."
   	reporting_text += "\nUse `#{Bot::PREFIX}egg` to report an egg."
   	reporting_text += "\nUse `#{Bot::PREFIX}raid` to report an active raid."
+    reporting_text += "\nUse `#{Bot::PREFIX}hatch` to update an egg after hatch."
   	reporting_text += "\nUse `#{Bot::PREFIX}rm` to remove a mis-reported egg or raid."
     reporting_text += "\nUse `#{Bot::PREFIX}leaderboard` to view a list of raid/egg reporters."    
     reporting_text += "\nActive eggs and raids are pinned in the Raids channel."
     reporting_text += "\nExpired eggs/raids are cleared out every 15 minutes."
-    reporting_text += "\nThere is no edit command, use the raid command to report a raid boss when an egg hatches."
     Bot::CommandCategoriesHelp['reporting'] = reporting_text
 
     train_text = "**Raid Train Routing**"
