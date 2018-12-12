@@ -1,7 +1,10 @@
 module Bot::ReportingCommands
   module Hatch
     extend Discordrb::Commands::CommandContainer
-    command(:hatch, min_args: 1, max_args: 1, usage: 'hatch <boss>', description: 'update an egg report to a raid report') do |_event, boss|
+    command(:hatch, min_args: 1, usage: 'hatch <boss>', description: 'update an egg report to a raid report') do |_event, *boss_text|
+
+      boss = boss_text.join(' ')
+      puts "Boss: #{boss}, was #{boss_text}"
 
       if boss.include?('@')
         error_msg = "No tags or mentions are allowed in the hatch command."
