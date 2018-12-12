@@ -59,13 +59,31 @@ def register_egg(gym, hatch_time, despawn_time, tier, reported_by, server_id, us
 end
 
 def find_active_raids(server_id)
+	# raid and eggs
+	# don't return if is_visible is false
 	collection = CLIENT[:raid_reports]
 
 	active_raids = collection.find(
 		{ 'server_id': server_id,
-			'despawn_time': {'$gt' => Time.now} }
+			'despawn_time': {'$gt' => Time.now},
+			'is_visible': {'$ne' => false }
+		}
 	).sort({ 'despawn_time': 1 }).to_a
 	return active_raids
+end
+
+def find_active_eggs(server_id)
+	# eggs only
+	collection = CLIENT[:raid_reports]	
+	active_eggs = collection.find(
+			{
+				'server_id': server_id,
+				'despawn_time': {'$gt' => Time.now},
+				'tier': {'$ne' => nil},
+				'is_visible': {'$ne' => false}
+			}
+		).sort({'despawn_time': 1}).to_a
+	return active_eggs
 end
 
 def register_raid(gym, despawn_time, boss, reported_by, server_id, user_id)
@@ -73,6 +91,23 @@ def register_raid(gym, despawn_time, boss, reported_by, server_id, user_id)
 	raid = { gym: gym, despawn_time: despawn_time, boss: boss, reported_by: reported_by, server_id: server_id.to_s, user_id: user_id }
 	response = collection.insert_one(raid)
 	return response
+end
+
+def egg_to_raid(server_id, user_id, reported_by, egg_id, boss)
+	collection = CLIENT[:raid_reports]
+	egg = collection.find({"_id" => egg_id}).limit(1).first
+	return false if !egg
+	raid = {gym: egg['gym'], 
+					despawn_time: egg['despawn_time'],
+					boss: boss, 
+					reported_by: reported_by,
+					server_id: server_id.to_s,
+					user_id: user_id}
+	response = collection.insert_one(raid)
+	if response
+		egg_response = make_invisible(egg_id)
+	end
+	return egg_response 
 end
 
 def get_reporters(server_id)
@@ -84,6 +119,17 @@ def get_reporters(server_id)
 								{'$sort' => {total: -1}},
 								{'$limit' => 10}
 							])
+	return response
+end
+
+def make_invisible(egg_id)
+	collection = CLIENT[:raid_reports]
+	#updateOne({filter that identifies the document to be updated},{$set:{year: 1999}})
+	response = collection.update_one(
+		{'_id' => egg_id},
+		{'$set' => {'is_visible': false}}
+	)
+	puts response
 	return response
 end
 
@@ -133,7 +179,7 @@ def insert_test(server)
 			egg = { gym: gym_name, 
 							hatch_time: hatch_time, 
 							despawn_time: despawn_time, 
-							tier: 5, 
+							tier: rand(5) + 1, 
 							reported_by: 'test', 
 							server_id: server_id }
 			response = raid_reports.insert_one(egg)
