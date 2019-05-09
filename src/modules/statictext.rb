@@ -1,5 +1,5 @@
 module Bot::StaticText
-	module HelpText
+  module HelpText
     # define command categories and text in hash here
     # remove from hash if the command isn't loaded by the bot
     Bot::CommandCategories['lookup'] = []
@@ -16,12 +16,12 @@ module Bot::StaticText
     lookup_text += "\nThe bot does not provide pokestop lookups."    
     Bot::CommandCategoriesHelp['lookup'] = lookup_text
 
-  	reporting_text = "**Raid/Egg Reporting**"
-  	reporting_text += "\nUse `#{Bot::PREFIX}active` for a list of active and pending raids, sorted by despawn time."
-  	reporting_text += "\nUse `#{Bot::PREFIX}egg` to report an egg."
-  	reporting_text += "\nUse `#{Bot::PREFIX}raid` to report an active raid."
+    reporting_text = "**Raid/Egg Reporting**"
+    reporting_text += "\nUse `#{Bot::PREFIX}active` for a list of active and pending raids, sorted by despawn time."
+    reporting_text += "\nUse `#{Bot::PREFIX}egg` to report an egg."
+    reporting_text += "\nUse `#{Bot::PREFIX}raid` to report an active raid."
     reporting_text += "\nUse `#{Bot::PREFIX}hatch` to update an egg after hatch."
-  	reporting_text += "\nUse `#{Bot::PREFIX}rm` to remove a mis-reported egg or raid."
+    reporting_text += "\nUse `#{Bot::PREFIX}rm` to remove a mis-reported egg or raid."
     reporting_text += "\nUse `#{Bot::PREFIX}leaderboard` to view a list of raid/egg reporters."    
     reporting_text += "\nActive eggs and raids are pinned in the Raids channel."
     reporting_text += "\nExpired eggs/raids are cleared out every 15 minutes."
@@ -33,5 +33,5 @@ module Bot::StaticText
     help_text = "Type `#{Bot::PREFIX}help [command/category]` for help."
     help_text += "\nType `#{Bot::PREFIX}help` for a list of available categories and commands."
     Bot::CommandCategoriesHelp['help'] = help_text    
-	end
+  end
 end

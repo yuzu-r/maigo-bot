@@ -3,7 +3,11 @@ require 'discordrb'
 require 'bundler/setup'
 require_relative 'lib/maigodb'
 require_relative 'lib/helpers'
+require_relative 'lib/discord_helpers'
 require_relative 'classes/train'
+require_relative 'classes/prune'
+require_relative 'classes/reply'
+require_relative 'classes/profile'
 require 'chronic'
 require 'tzinfo'
 require 'rufus-scheduler'
@@ -17,6 +21,8 @@ module Bot
   LOGGING = ENV['LOGGING'].to_s
   MOD_ROLE_ID = ENV['MOD_ROLE_ID'].to_i || nil
   MOD_CHANNEL_ID = ENV['MOD_CHANNEL_ID'].to_i || nil
+  PURGE_CHANNEL_ID = ENV['PURGE_CHANNEL_ID'].to_i || nil
+  UNVERIFIED_CHANNEL_ID = ENV['UNVERIFIED_CHANNEL_ID'].to_i || nil
   MAX_MEMBERS_RETURNED = ENV['MAX_MEMBERS_RETURNED'].to_i || 100
   CLEAN_INTERVAL = ENV['CLEAN_INTERVAL']
   EGG_DURATION = ENV['EGG_DURATION'].to_i
