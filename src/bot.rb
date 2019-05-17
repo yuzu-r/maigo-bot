@@ -17,6 +17,7 @@ module Bot
   # Bot configuration
   client_id = ENV['DISCORD_CLIENT_ID']
   token = ENV['DISCORD_TOKEN']
+  MAX_MESSAGE_LENGTH = 2000
   PREFIX = ENV['DISCORD_PREFIX']
   LOGGING = ENV['LOGGING'].to_s
   MOD_ROLE_ID = ENV['MOD_ROLE_ID'].to_i || nil
