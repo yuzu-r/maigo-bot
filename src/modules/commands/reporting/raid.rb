@@ -16,7 +16,8 @@ module Bot::ReportingCommands
 				gym, minutes_left, boss = parsed_raid_data
 				time_ok = minutes_left =~ /\D/
 				if !time_ok.nil? # do not accept : or anything other than digits for raids
-					error_msg = "The raid command only accepts minutes remaining (do not include seconds)"
+					error_msg = "The raid command only accepts minutes remaining (do not include seconds)\n"
+					error_msg += "Usage: #{Bot::PREFIX}raid *gym*, *minutes remaining*, *boss* (separated by commas)"
 					_event.respond _event.user.mention + ' ' + error_msg
 					delete_message_queue(Bot::DeleteRaidMessageQueue[server_id], _event, false)
 					return
