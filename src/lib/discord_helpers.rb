@@ -48,7 +48,6 @@ def get_role_from_name(server, role_name)
   role = server.roles.detect {|r| r.name == role_name}
 end
 
-
 def trim_message(message_content)
   return "" if message_content.nil?
   if message_content.length > Bot::MAX_MESSAGE_LENGTH
