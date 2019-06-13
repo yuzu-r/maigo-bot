@@ -13,6 +13,7 @@ class Trainer
 		<<~HEREDOC
 			Permissions:
 			Can send messages? #{@user.permission?(:send_messages)}
+			Can embed links? #{@user.permission?(:embed_links)}
 			Can kick users? #{@user.permission?(:kick_members)}
 		HEREDOC
 	end
