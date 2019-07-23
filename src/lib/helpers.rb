@@ -224,3 +224,7 @@ def hatch_egg(server, user, egg_id, boss)
 	db_response = egg_to_raid(server.id.to_s, user.id, reported_by, egg_id, boss)
 	return db_response
 end
+
+def repeat_post(event, channel_id, message)
+	event.bot.send_message(channel_id, message)
+end
