@@ -18,6 +18,10 @@ module Bot::ReportingEvents
 					silent_update(server, _event.bot)	
 				end
 			end
+			midnight_cron = "0 0 * * *"
+			Bot::Scheduler.cron midnight_cron do
+				repeat_post(_event, Bot::MIDNIGHT_POST_CHANNEL_ID, Bot::MIDNIGHT_POST)
+			end
 		end
   end
 end
