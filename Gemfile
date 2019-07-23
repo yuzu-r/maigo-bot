@@ -1,5 +1,5 @@
 source 'https://rubygems.org'
-ruby '2.3.1'
+ruby '2.5.5'
 
 #gem 'discordrb', '~> 3.2.1'
 #run bundle update to install everything
