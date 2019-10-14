@@ -8,8 +8,9 @@ module Bot::WhereisCommands
 					return
 				else
 					embed = Discordrb::Webhooks::Embed.new
-					embed.title = "__**Area Gyms Eligible for EX Raids:**__"
 					embed.color = 15236612
+					foot = Discordrb::Webhooks::EmbedFooter.new(text:"Click the gym name for google map.")
+					embed.footer = foot			
 					description = "The gyms listed here all display an Ex Raid tag when viewed in PoGO."
 					description += "\nHowever, not all of them regularly hold ex raids."
 					ex_gyms.each do |gym|
@@ -20,18 +21,17 @@ module Bot::WhereisCommands
 						end
 						description += "\n#{gym_info}"
 					end
-					if description.length > 2048
-						description = description.slice(0,2048)
+					description_array = Discordrb::split_message(description)
+					description_array.each_with_index do |d, i|
+						embed.title = "__**Area Gyms Eligible for EX Raids (#{i + 1}/#{description_array.size}):**__"
+						embed.description = d
+						_event.bot.send_message(_event.channel.id, '',false, embed)	
 					end
-					embed.description = description
-					foot = Discordrb::Webhooks::EmbedFooter.new(text:"Click the gym name for google map.")
-					embed.footer = foot
-					_event.bot.send_message(_event.channel.id, '',false, embed)
 					fallback_msg = "Could not log exgyms command to database!"
-					log_command(_event, 'exgyms', true, fallback_msg)				
+					log_command(_event, 'exgyms', true, fallback_msg)
 				end
-				return
-	    end
+				return	    
+			end
 	  exgyms_text = "Type `#{Bot::PREFIX}exgyms` to see a listing of El Cerrito/Albany gyms eligible to hold ex raids."
 	  exgyms_text += "\n(Not all of the eligible gyms regularly hold ex raids.)"
 		Bot::CommandCategories['lookup'].push :exgyms => exgyms_text
