@@ -3,6 +3,7 @@ module Bot::ReportingCommands
     extend Discordrb::Commands::CommandContainer
   	command(:leaderboard, description: 'egg/raid reporter weekly leaderboard') do |_event|
 			tz = TZInfo::Timezone.get('America/Los_Angeles')
+			TZInfo::Timezone.default_dst = true
 			start_day_local = Chronic.parse('last ' + Bot::REPORTING_START_DAY + ' at 00:00:00')
 			end_day_local = Chronic.parse('6 days from last ' + Bot::REPORTING_START_DAY + ' at 23:59:00')
 			if start_day_local.wday == Time.now.wday
