@@ -1,7 +1,9 @@
 require 'mongo'
 
 Mongo::Logger.logger.level = Logger::INFO
-CLIENT = Mongo::Client.new(ENV['MONGO_URI'])
+#CLIENT = Mongo::Client.new(ENV['MONGO_URI'])
+puts "connecting to database: #{ENV['DB_CONNECTION']}"
+CLIENT = Mongo::Client.new(ENV['DB_CONNECTION'])
 
 def lookup(gym)
 	collection = CLIENT[:gyms]
