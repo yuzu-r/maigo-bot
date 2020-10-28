@@ -215,7 +215,7 @@ end
 
 def get_user_nickname(server, user_id)
 	# to do: move this to discord_helpers
-	member = server.members.find {|m| m.id == user_id}
+	member = server.member(user_id)
 	return member.nil? ? "<unown>" : member.display_name
 end
 
