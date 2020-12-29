@@ -34,7 +34,7 @@ module Bot::ReportingCommands
 		  	else
 		  		hatch_time, despawn_time = hatch_data
 		  	end
-		  	egg_channel = get_raids_channel(_event.server)
+
 				username = _event.user.display_name
 
 		  	# match color to tier
@@ -61,14 +61,6 @@ module Bot::ReportingCommands
 					is_success = true
 				end
 
-=begin
-				# this is too spammy
-		  	embed = Discordrb::Webhooks::Embed.new
-		  	embed.title = "**#{tier}* hatches #{hatch_time.strftime("%-I:%M")} (despawns #{despawn_time.strftime("%-I:%M")})**"
-		  	embed.color = color
-		  	embed.description = "Gym: #{gym_info} (reported by #{username})"
-		  	_event.bot.send_message(egg_channel.id, '',false, embed)
-=end
 				sort_and_pin(_event)
 		  	#_event.message.react("✅")
 		  	delete_message_queue(Bot::DeleteEggMessageQueue[server_id], _event)

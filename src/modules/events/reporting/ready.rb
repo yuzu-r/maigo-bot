@@ -14,15 +14,9 @@ module Bot::ReportingEvents
 			Bot::Scheduler.cron cron_string do
 				puts "cleanup time: #{Time.now}"
 				_event.bot.servers.each do |server_id, server|
-					raids_channel = get_raids_channel(server)
 					silent_update(server, _event.bot)	
 				end
 			end
-			# suddenly unpredictably overdone sometimes . . .
-			#midnight_cron = "0 0 * * *"
-			#Bot::Scheduler.cron midnight_cron do
-			#	repeat_post(_event, Bot::MIDNIGHT_POST_CHANNEL_ID, Bot::MIDNIGHT_POST)
-			#end
 		end
   end
 end

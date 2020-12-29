@@ -2,7 +2,7 @@ module Bot::ReportingCommands
   module Raid
     extend Discordrb::Commands::CommandContainer
     command(:raid, description: 'report a raid') do |_event, *raid_info|
-			raid_channel = get_raids_channel(_event.server)
+
 			server_id = _event.server.id
 			username = _event.user.display_name
 
