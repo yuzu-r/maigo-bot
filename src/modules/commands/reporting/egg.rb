@@ -19,7 +19,6 @@ module Bot::ReportingCommands
 					error_msg = "No tags or mentions are allowed in the raid report."
 					_event.respond _event.user.mention + ' ' + error_msg
 					delete_message_queue(Bot::DeleteEggMessageQueue[server_id], _event, false)
-					#_event.message.delete 
 					return
 				end
 			end
@@ -37,22 +36,6 @@ module Bot::ReportingCommands
 
 				username = _event.user.display_name
 
-		  	# match color to tier
-		  	case tier.to_i
-		  	when 1..2
-		  		color = 16724889
-		  	when 3..4
-		  		color = 13421568
-		  	else
-		  		color = 8028868
-		  	end
-
-				gym_data = lookup(gym)
-				if gym_data['gmap']
-					gym_info = '[' + gym + ']' + '(' + gym_data['gmap'] + ')'
-				else
-					gym_info = gym
-				end
 		  	response = register_egg(gym, hatch_time, despawn_time, tier.to_i, username, _event.server.id, _event.user.id)
 				if !response || response.n != 1
 					puts "could not log egg to database"
@@ -62,7 +45,6 @@ module Bot::ReportingCommands
 				end
 
 				sort_and_pin(_event)
-		  	#_event.message.react("✅")
 		  	delete_message_queue(Bot::DeleteEggMessageQueue[server_id], _event)
 			else
 				_event.respond _event.user.mention + ' Please check the egg tier (1-5 allowed)'
