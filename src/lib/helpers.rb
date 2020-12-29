@@ -7,18 +7,9 @@ def log_command(_event, command, is_success, fallback_msg, param = nil)
 	return
 end
 
-def get_raids_channel(server)
-	# return the 'raids' channel if it exists on the server
-	# to do: move this to discord helpers
-	server_name = server.name
-	raids_channel = nil
-	server.channels.each do |channel|
-		if channel.name == 'raids'
-			raids_channel = channel
-			break
-		end
-	end
-	return raids_channel
+def get_raids_channel(bot, server)
+	channel_array = bot.find_channel('raids', server.name)
+	channel_array.empty? ? nil : channel_array.first
 end
 
 def get_bot_pin(raid_channel, bot_id)
@@ -121,7 +112,8 @@ def silent_update(server, bot)
 		end
 	end
 	# update the pinned message
-	raid_channel = get_raids_channel(server)
+	#raid_channel = get_raids_channel(server)
+	raid_channel = get_raids_channel(bot, server)
 	if raid_channel
 		bot_pin = get_bot_pin(raid_channel, bot.profile.id)
 		if bot_pin
@@ -140,7 +132,8 @@ def sort_and_pin(event)
 	emoji = event.bot.find_emoji(Bot::LEGENDARY_EMOJI)
 	emoji_text = emoji ? emoji.mention : ':exclamation:'
 
-	raid_channel = get_raids_channel(event.server) || event.channel
+	#raid_channel = get_raids_channel(event.server) || event.channel
+	raid_channel = get_raids_channel(event.bot, event.server) || event.channel
 	bot_pin = get_bot_pin(raid_channel, event.bot.profile.id) 
 	active_raids = sort_raids(find_active_raids(event.server.id.to_s))
 	# mongo returns dates as UTC
@@ -200,7 +193,7 @@ def sort_raids(active_events)
 end
 
 def delete_message_queue(queue,event,is_good_command = true)
-	raid_channel = get_raids_channel(event.server) || event.channel
+	raid_channel = get_raids_channel(event.bot, event.server) || event.channel
 	if is_good_command
 		while queue && queue.count > 0
 			message_id = queue.pop
