@@ -2,12 +2,20 @@ module Bot::HelpCommands
   module Help
     extend Discordrb::Commands::CommandContainer
     command :help do |_event, command = nil|
-      help_string = "Type `#{Bot::PREFIX}help [command/category]` for bot help.\n"
-      help_string += "Examples:\n"
-      help_string += "`#{Bot::PREFIX}help` (see all available help topics)\n"
-      help_string += "`#{Bot::PREFIX}help lookup`\n"
-      help_string += "`#{Bot::PREFIX}help whereis`\n"
-      help_string += "__Available help topics:__\n"
+      help_string = <<~HELP_HELP
+        Type `#{Bot::PREFIX}help [command/category]` for bot help.
+        Examples:
+        `#{Bot::PREFIX}help` (see all available help topics)
+        `#{Bot::PREFIX}help lookup`
+        `#{Bot::PREFIX}help whereis`
+        __Available help topics:__
+      HELP_HELP
+      #help_string = "Type `#{Bot::PREFIX}help [command/category]` for bot help.\n"
+      #help_string += "Examples:\n"
+      #help_string += "`#{Bot::PREFIX}help` (see all available help topics)\n"
+      #help_string += "`#{Bot::PREFIX}help lookup`\n"
+      #help_string += "`#{Bot::PREFIX}help whereis`\n"
+      #help_string += "__Available help topics:__\n"
 
       if command.nil?
         Bot::CommandCategories.each do |category, commands|

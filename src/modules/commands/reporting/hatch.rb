@@ -71,13 +71,23 @@ module Bot::ReportingCommands
     	end
 		return
     end
-    hatch_text = "\n**Hatch Command**"
-    hatch_text += "\n`#{Bot::PREFIX}hatch [boss]`"
-  	hatch_text += "\nUse this command to add the raid boss to a previously reported egg after it hatches."
-    hatch_text += "\nA numbered list of the eggs that were reported earlier will appear."
-    hatch_text += "\nChoose the number of the egg that hatched (or 0 to cancel)."
-    hatch_text += "\nThe command times out after 15 seconds of inactivity."
-    hatch_text += "\nDo not use mentions (@) for the boss name."
+    hatch_text = <<~HATCH_HELP
+      **Hatch Command**
+      `#{Bot::PREFIX}hatch [boss]`
+      Use this command to add the raid boss to a previously reported egg after it hatches.
+      A numbered list of the eggs that were reported earlier will appear.
+      Choose the number of the egg that hatched (or 0 to cancel).
+      The command times out after 15 seconds of inactivity.
+      Do not use mentions (@) for the boss name.
+    HATCH_HELP
+
+    #hatch_text = "\n**Hatch Command**"
+    #hatch_text += "\n`#{Bot::PREFIX}hatch [boss]`"
+  	#hatch_text += "\nUse this command to add the raid boss to a previously reported egg after it hatches."
+    #hatch_text += "\nA numbered list of the eggs that were reported earlier will appear."
+    #hatch_text += "\nChoose the number of the egg that hatched (or 0 to cancel)."
+    #hatch_text += "\nThe command times out after 15 seconds of inactivity."
+    #hatch_text += "\nDo not use mentions (@) for the boss name."
 
     Bot::CommandCategories['reporting'].push :hatch => hatch_text
   end

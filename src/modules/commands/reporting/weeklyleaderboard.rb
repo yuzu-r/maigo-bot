@@ -36,9 +36,14 @@ module Bot::ReportingCommands
 			_event.bot.send_message(_event.channel.id,'',false, embed)
 			return
     end
-    leaderboard_text = "\n**Leaderboard Command**"
-    leaderboard_text += "\n`#{Bot::PREFIX}leaderboard`"
-  	leaderboard_text += "\nThis experimental command will display information about who reports the most raids/eggs. It resets weekly."
+    leaderboard_text = <<~LEADERBOARD_HELP
+    	**Leaderboard Command**
+    	`#{Bot::PREFIX}leaderboard`
+    	This experimental command will display information about who reports the most raids/eggs. It resets weekly.
+    LEADERBOARD_HELP
+    #leaderboard_text = "\n**Leaderboard Command**"
+    #leaderboard_text += "\n`#{Bot::PREFIX}leaderboard`"
+  	#leaderboard_text += "\nThis experimental command will display information about who reports the most raids/eggs. It resets weekly."
     Bot::CommandCategories['reporting'].push :leaderboard => leaderboard_text            	
   end
 end
