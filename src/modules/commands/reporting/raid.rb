@@ -33,12 +33,6 @@ module Bot::ReportingCommands
 
 			despawn_time = Time.now + minutes_left.to_i * 60
 
-			gym_data = lookup(gym)
-			if gym_data['gmap']
-				gym_info = '[' + gym + ']' + '(' + gym_data['gmap'] + ')'
-			else
-				gym_info = gym
-			end
 			response = register_raid(gym, despawn_time, boss, username, _event.server.id, _event.user.id)
 			is_success = true
 			if !response || response.n != 1
@@ -46,7 +40,6 @@ module Bot::ReportingCommands
 				is_success = false
 			end
 			sort_and_pin(_event)
-			#_event.message.react("✅")
 			delete_message_queue(Bot::DeleteRaidMessageQueue[server_id], _event)
 			fallback_msg = "Could not log raid command to database!"
 			log_command(_event, 'raid', is_success, fallback_msg)

@@ -1,7 +1,6 @@
 require 'mongo'
 
 Mongo::Logger.logger.level = Logger::INFO
-#CLIENT = Mongo::Client.new(ENV['MONGO_URI'])
 puts "connecting to database: #{ENV['DB_CONNECTION']}"
 CLIENT = Mongo::Client.new(ENV['DB_CONNECTION'])
 
@@ -153,13 +152,11 @@ end
 
 def delete_raid(raid_id)
 	collection = CLIENT[:raid_reports]
-
 	response = collection.delete_one({'_id' => raid_id})
 end
 
 def get_raid(raid_id)
 	collection = CLIENT[:raid_reports]
-
 	collection.find({'_id' => raid_id}).limit(1).first
 end
 

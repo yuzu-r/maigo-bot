@@ -19,12 +19,11 @@ module Bot::ReportingCommands
     		_event.message.delete
     		no_eggs_message.delete
     	else
-    		tz = TZInfo::Timezone.get('America/Los_Angeles')
     		egg_id = 1
     		update_text = "Enter the number of the egg that hatched, or 0 to cancel.\n0) **Cancel update request**"
     		active_eggs.each do |egg|
-    			convert_hatch_time = tz.utc_to_local(egg['hatch_time']).strftime("%-I:%M")
-    			convert_despawn_time = convert_despawn_time = tz.utc_to_local(egg['despawn_time']).strftime("%-I:%M")
+                convert_hatch_time = format_utc_to_local(egg['hatch_time'])
+                convert_despawn_time = format_utc_to_local(egg['despawn_time'])
     			update_text += "\n#{egg_id.to_s}) #{egg['tier']}* (#{convert_hatch_time} to **#{convert_despawn_time}**) @ #{egg['gym']}"
     			egg_id += 1
     		end
