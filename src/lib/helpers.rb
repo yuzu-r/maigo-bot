@@ -83,7 +83,7 @@ def param_check(command_line, num_required_params)
 	command_line.scan(/(?=,)/).count == num_required_params ? true : false
 end
 
-def format_time(utc_time)
+def format_utc_to_local(utc_time)
 	tz = TZInfo::Timezone.get('America/Los_Angeles')
 	tz.utc_to_local(utc_time).strftime("%-I:%M")
 end
@@ -92,21 +92,17 @@ def build_activity_list(bot, active_raids, current_message = '')
 	return current_message if !active_raids || active_raids.count == 0
 	emoji = bot.find_emoji(Bot::LEGENDARY_EMOJI)
 	emoji_text = emoji ? emoji.mention : ':exclamation:'
-	#tz = TZInfo::Timezone.get('America/Los_Angeles')
 	active_raids.each do |raid|
   	recent_indicator = raid['is_recent'] ? ':new:' : ''
   	ex_gym_indicator = is_ex?(raid['gym']) ? emoji_text : ''
   	# having more than one '' in a row breaks display on iphone (10/29/18)
   	indicators = ex_gym_indicator + recent_indicator
   	if raid['tier'] # it's an egg
-  		#convert_hatch_time = tz.utc_to_local(raid['hatch_time']).strftime("%-I:%M")
-  		#convert_despawn_time = tz.utc_to_local(raid['despawn_time']).strftime("%-I:%M")
-  		convert_hatch_time = format_time(raid['hatch_time'])
-  		convert_despawn_time = format_time(raid['despawn_time'])
+  		convert_hatch_time = format_utc_to_local(raid['hatch_time'])
+  		convert_despawn_time = format_utc_to_local(raid['despawn_time'])
 			current_message += "#{raid['tier']}* (#{convert_hatch_time} to **#{convert_despawn_time}**) @ #{raid['gym']} #{indicators}\n"
 		else # it's a raid
-  		#convert_despawn_time = tz.utc_to_local(raid['despawn_time']).strftime("%-I:%M")
-  		convert_despawn_time = format_time(raid['despawn_time'])
+  		convert_despawn_time = format_utc_to_local(raid['despawn_time'])
 			current_message += "#{raid['boss'].capitalize} (**#{convert_despawn_time}**) @ #{raid['gym']} #{indicators}\n"
 		end
 	end
