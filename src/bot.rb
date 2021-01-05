@@ -104,8 +104,5 @@ module Bot
   load_modules(:MiscCommands, 'commands/misc')
   load_modules(:HelpCommands, 'commands/help')
   
-
-  # Run the bot
-  #p CommandCategories
   BOT.run
 end

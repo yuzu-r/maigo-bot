@@ -45,11 +45,13 @@ module Bot::ReportingCommands
 			log_command(_event, 'raid', is_success, fallback_msg)
 			return
     end
-  	raid_text = "\n**Raid Reporting**"
-  	raid_text += "\n`#{Bot::PREFIX}raid [gym], [minutes remaining to despawn], [boss]`"
-  	raid_text += "\nTo report a kyogre raid with 42 minutes remaining at frog habitat:"
-  	raid_text += "\n`#{Bot::PREFIX}raid frog, 42, kyogre`"
-  	raid_text += "\nAll active raids can be viewed in a pinned message in the Raids channel."
+    raid_text = <<~RAID_TEXT
+    	**Raid Reporting**
+    	`#{Bot::PREFIX}raid [gym], [minutes remaining to despawn], [boss]`
+    	To report a kyogre raid with 42 minutes remaining at frog habitat:
+    	`#{Bot::PREFIX}raid frog, 42, kyogre`
+    	All active raids can be viewed in a pinned message in the Raids channel.
+    RAID_TEXT
     Bot::CommandCategories['reporting'].push :raid => raid_text
   end
 end

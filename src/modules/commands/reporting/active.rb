@@ -5,9 +5,11 @@ module Bot::ReportingCommands
 			sort_and_pin(_event)
 			return    	
     end
-    active_text = "\n**Active Command**"
-    active_text += "\n`#{Bot::PREFIX}active`"
-  	active_text += "\nThis command will display the current/pending reported raids."
+    active_text = <<~ACTIVE_HELP
+      **Active Command**
+      `#{Bot::PREFIX}active`
+      This command will display the current/pending reported raids.
+    ACTIVE_HELP
     Bot::CommandCategories['reporting'].push :active => active_text    
   end
 end

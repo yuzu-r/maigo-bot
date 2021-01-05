@@ -24,9 +24,11 @@ module Bot::ReportingCommands
 			_event.bot.send_message(_event.channel.id,'',false, embed)
 			return
     end
-    leaderboard_text = "\n**Leaderboard Command**"
-    leaderboard_text += "\n`#{Bot::PREFIX}alltime`"
-  	leaderboard_text += "\nThis experimental command will display information about who reports the most raids/eggs."
+    leaderboard_text = <<~LEADERBOARD_HELP
+    	**Leaderboard Command**
+    	`#{Bot::PREFIX}alltime`
+    	This experimental command will display information about who has reported the most raids/eggs.
+    LEADERBOARD_HELP
     Bot::CommandCategories['reporting'].push :alltime => leaderboard_text        
   end
 end

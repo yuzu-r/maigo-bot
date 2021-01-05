@@ -33,11 +33,13 @@ module Bot::WhereisCommands
 				message
 			end
     end
-  	whereis_text = "\nType `#{Bot::PREFIX}whereis` and a gym name or nickname to look up its location. "
-  	whereis_text += "\nTry `#{Bot::PREFIX}whereis happy donuts` to see it in action. "
-  	whereis_text += "\nIt is not case sensitive. In most cases, it can guess an incomplete name, but not typo-ed names. "
-  	whereis_text += "In other words, `#{Bot::PREFIX}whereis donut` will work, but `#{Bot::PREFIX}whereis hapy donts` will not. "
-  	whereis_text += "If the entered name isn\'t unique, maigo-helper will return a list of suggestions to narrow down your search."    
+    whereis_text = <<~WHEREIS_HELP
+    	Type `#{Bot::PREFIX}whereis` and a gym name or nickname to look up its location.
+    	Try `#{Bot::PREFIX}whereis happy donuts` to see it in action.
+    	It is not case sensitive. In most cases, it can guess an incomplete name, but not typo-ed names.
+    	In other words, `#{Bot::PREFIX}whereis donut` will work, but `#{Bot::PREFIX}whereis hapy donts` will not.
+    	If the entered name isn\'t unique, maigo-helper will return a list of suggestions to narrow down your search.
+    WHEREIS_HELP
     Bot::CommandCategories['lookup'].push :whereis => whereis_text
   end
 end
