@@ -64,19 +64,13 @@ module Bot::ReportingCommands
 			end
     end
     rm_text = <<~RM_HELP
-    	**Rm Command**
-    	`#{Bot::PREFIX}rm`
-    	This command will launch an interactive session to remove a mis-reported egg or raid.
-    	After typing the command, a numbered list of active and pending raids will appear.
-    	Enter the number that corresponds to the raid/egg that was mis-reported.
+			**Rm Command**
+			`#{Bot::PREFIX}rm`
+			This command will launch an interactive session to remove a mis-reported egg or raid.
+			After typing the command, a numbered list of active and pending raids will appear.
+			Enter the number that corresponds to the raid/egg that was mis-reported.
 			The command will time out after 10 seconds if there is no response.
     RM_HELP
-    #rm_text = "\n**Rm Command**"
-    #rm_text += "\n`#{Bot::PREFIX}rm`"
-  	#rm_text += "\nThis command will launch an interactive session to remove a mis-reported egg or raid."
-  	#rm_text += "\nAfter typing the command, a list of active and pending raids will appear."
-  	#rm_text += "\nEnter the number that corresponds to the raid/egg that was mis-reported."
-  	#rm_text += "\nThe command will timeout after 10 seconds if there is no response."
     Bot::CommandCategories['reporting'].push :rm => rm_text        
   end
 end

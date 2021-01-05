@@ -10,9 +10,6 @@ module Bot::ReportingCommands
       `#{Bot::PREFIX}active`
       This command will display the current/pending reported raids.
     ACTIVE_HELP
-    #active_text = "\n**Active Command**"
-    #active_text += "\n`#{Bot::PREFIX}active`"
-  	#active_text += "\nThis command will display the current/pending reported raids."
     Bot::CommandCategories['reporting'].push :active => active_text    
   end
 end

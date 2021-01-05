@@ -36,8 +36,6 @@ module Bot::WhereisCommands
 			Type `#{Bot::PREFIX}exgyms` to see a listing of El Cerrito/Albany gyms eligible to hold ex raids.
 			(Not all of the eligible gyms regularly hold ex raids.)
 		EXGYMS_HELP
-	  #exgyms_text = "Type `#{Bot::PREFIX}exgyms` to see a listing of El Cerrito/Albany gyms eligible to hold ex raids."
-	  #exgyms_text += "\n(Not all of the eligible gyms regularly hold ex raids.)"
 		Bot::CommandCategories['lookup'].push :exgyms => exgyms_text
   end
 end
